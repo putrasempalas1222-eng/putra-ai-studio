@@ -383,6 +383,63 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
 .metric span{display:block;color:var(--muted);font-size:12px;font-weight:800;margin-bottom:8px}
 .metric b{font-size:24px;color:var(--ink)}
 
+.usage-panel{
+  margin:18px 0;
+  padding:16px;
+  border:1px solid var(--glass-highlight);
+  border-radius:24px;
+  background:var(--soft-panel);
+  box-shadow:var(--glass-inset);
+}
+
+.usage-head{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:900;
+  margin-bottom:10px;
+}
+
+.usage-head b{
+  color:var(--ink);
+}
+
+.usage-track{
+  height:12px;
+  overflow:hidden;
+  border-radius:999px;
+  background:rgba(16,24,40,.12);
+  border:1px solid var(--line);
+}
+
+.usage-fill{
+  width:0%;
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  transition:width .3s ease,background .3s ease;
+}
+
+.usage-panel.warning .usage-fill{
+  background:linear-gradient(135deg,#ff9500,#ffcc00);
+}
+
+.usage-panel.danger .usage-fill{
+  background:linear-gradient(135deg,var(--rose),var(--pink));
+}
+
+.usage-message{
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.5;
+  margin-top:10px;
+}
+
+.usage-panel.warning .usage-message{color:#b45309}
+.usage-panel.danger .usage-message{color:#b91c1c}
+
 .auth-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
 
 .modal{
@@ -1097,6 +1154,16 @@ footer{
           </div>
         </div>
 
+        <div class="usage-panel" id="usagePanel">
+          <div class="usage-head">
+            <span>Pemakaian API</span>
+            <b><span id="usedBox">0</span>/<span id="usageLimitBox">100</span></b>
+          </div>
+          <div class="usage-track">
+            <div class="usage-fill" id="usageFill"></div>
+          </div>
+        </div>
+
         <h3 style="margin-top:18px;">API Key Kamu</h3>
 
         <div class="api-box" id="apiKeyBox">Loading...</div>
@@ -1166,7 +1233,10 @@ footer{
 
   <div class="card">
     <h3>Endpoint</h3>
-    <pre>POST https://api-mzmdqh3n6a-uc.a.run.app/chat</pre>
+    <pre>POST</pre>
+
+ <h3>Link</h3>
+    <pre>https://api-mzmdqh3n6a-uc.a.run.app/chat</pre>
 
     <h3>Headers</h3>
     <pre>{
@@ -1176,7 +1246,7 @@ footer{
 
     <h3>Body</h3>
     <pre>{
-  "prompt": "Halo AI"
+  "prompt": "Halo PUTRA AI Studio"
 }</pre>
 
     <h3>Contoh JavaScript</h3>
@@ -1187,7 +1257,7 @@ footer{
     "x-api-key": "API_KEY_KAMU"
   },
   body: JSON.stringify({
-    prompt: "Halo AI"
+    prompt: "Halo PUTRA AI Studio"
   })
 });
 
@@ -1205,7 +1275,7 @@ headers = {
 }
 
 payload = {
-    "prompt": "Halo AI"
+    "prompt": "Halo PUTRA AI Studio"
 }
 
 response = requests.post(url, headers=headers, json=payload)
@@ -1477,6 +1547,7 @@ import {
   getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendEmailVerification,
   signOut,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -1519,6 +1590,8 @@ let authMode = "login";
 let chatHistory = [];
 let selectedPaymentPlan = "";
 let selectedPaymentInvoice = "";
+let currentUsageLimit = 100;
+let currentUsageUsed = 0;
 let reviewRating = 0;
 let reviewTimer = null;
 const REVIEW_DELAY = 60000;
@@ -1606,8 +1679,27 @@ function getAuthErrorMessage(error){
   if(code.includes("auth/invalid-credential")) return "Email atau password salah.";
   if(code.includes("auth/wrong-password")) return "Password salah.";
   if(code.includes("auth/weak-password")) return "Password minimal 6 karakter.";
+  if(code.includes("auth/too-many-requests")) return "Terlalu banyak percobaan. Tunggu beberapa menit lalu coba lagi.";
+  if(code.includes("auth/unauthorized-continue-uri")) return "Domain website belum diizinkan di Firebase Authentication.";
+  if(code.includes("auth/missing-continue-uri")) return "URL verifikasi email belum valid.";
 
   return error.message || "Terjadi kesalahan.";
+}
+
+function getVerificationActionSettings(){
+  const isLocalFile = location.origin === "null";
+  const continueUrl = isLocalFile
+    ? "https://play-integrity-2adpr7x4a8xhyex.firebaseapp.com/"
+    : location.origin + location.pathname;
+
+  return {
+    url: continueUrl,
+    handleCodeInApp: false
+  };
+}
+
+async function sendVerificationEmail(user){
+  await sendEmailVerification(user, getVerificationActionSettings());
 }
 
 window.setAuthMode = function(mode){
@@ -1701,10 +1793,11 @@ window.registerUser = async function(){
 
     const user = userCred.user;
 
-    await createUserProfileInBackend(user);
+    await sendVerificationEmail(user);
+    await signOut(auth);
 
-    showAuthMessage("Akun berhasil dibuat.", "success");
-    closeAuthModal();
+    setAuthMode("login");
+    showAuthMessage("Link verifikasi sudah dikirim ke email kamu. Verifikasi dulu sebelum login.", "success");
 
   }catch(err){
 
@@ -1729,6 +1822,15 @@ window.loginUser = async function(){
       input.email,
       input.password
     );
+
+    const user = auth.currentUser;
+
+    if(user && !user.emailVerified){
+      await sendVerificationEmail(user);
+      await signOut(auth);
+      showAuthMessage("Email belum diverifikasi. Link verifikasi baru sudah dikirim ke email kamu.");
+      return;
+    }
 
     closeAuthModal();
 
@@ -2104,49 +2206,112 @@ async function loadUserData(user){
   document.getElementById("userEmail").innerText = user.email;
   document.getElementById("apiKeyBox").innerText = "Memuat API key...";
   document.getElementById("limitBox").innerText = "100";
+  updateUsagePanel(0, 100);
 
-  const data = await waitForUserProfile(user);
+  let data = await waitForUserProfile(user);
+
+  if(!data){
+    try{
+      await createUserProfileInBackend(user);
+      data = await waitForUserProfile(user);
+    }catch(err){
+      console.warn("Gagal membuat profile user:", err);
+    }
+  }
 
   if(!data){
     currentApiKey = "";
-    document.getElementById("apiKeyBox").innerText = "API key belum tersedia. Silakan logout lalu login kembali.";
+    document.getElementById("apiKeyBox").innerText = "API key belum tersedia. Silakan coba login kembali.";
     return;
   }
 
   currentApiKey = data.apiKey || "";
+  currentUsageLimit = Number(data.limit || 100);
 
   document.getElementById("apiKeyBox").innerText = currentApiKey || "API key kosong.";
-  document.getElementById("limitBox").innerText = data.limit || 100;
+  document.getElementById("limitBox").innerText = currentUsageLimit;
+
+  await loadUsageData(currentApiKey, currentUsageLimit);
+}
+
+function updateUsagePanel(used, limit){
+
+  used = Number(used || 0);
+  limit = Number(limit || 100);
+
+  const remain = Math.max(limit - used, 0);
+
+  document.getElementById("usedBox").innerText = used;
+
+  document.getElementById("usageLimitBox").innerText = limit;
+
+  
+
+  const percent = Math.min((used / limit) * 100, 100);
+
+  document.getElementById("usageFill").style.width =
+    percent + "%";
+
+  const panel = document.getElementById("usagePanel");
+
+  panel.classList.remove("warning");
+  panel.classList.remove("danger");
+
+  if(percent >= 80){
+    panel.classList.add("danger");
+  }
+  else if(percent >= 50){
+    panel.classList.add("warning");
+  }
+
+}
+
+async function loadUsageData(apiKey, limit){
+  if(!apiKey){
+    updateUsagePanel(0, limit);
+    return;
+  }
+
+  try{
+    const today = new Date().toISOString().split("T")[0];
+    const usageId = apiKey + "_" + today;
+    const usageSnap = await getDoc(doc(db, "usage_limits", usageId));
+
+    if(usageSnap.exists()){
+      const usageData = usageSnap.data();
+      updateUsagePanel(usageData.count || 0, usageData.limit || limit);
+      return;
+    }
+
+    updateUsagePanel(0, limit);
+  }catch(err){
+    console.warn("Gagal memuat pemakaian API:", err);
+    updateUsagePanel(0, limit);
+  }
 }
 
 window.testApi = async function(){
+
   const promptInput = document.getElementById("testPrompt");
   const prompt = promptInput.value.trim();
 
-  if(!currentApiKey){
-    addChatMessage("Login dulu supaya API key kamu bisa dipakai untuk chat.", "error");
-    return;
-  }
-
   if(!prompt){
-    addChatMessage("Tulis prompt dulu sebelum mengirim pesan.", "error");
     return;
   }
 
-  addChatMessage(prompt, "user");
-
-  chatHistory.push({
-    role: "user",
-    content: prompt
-  });
+  if(!currentApiKey){
+    addChatMessage("Login dulu untuk memakai API.", "error");
+    return;
+  }
 
   promptInput.value = "";
 
-  const loadingBubble = addChatMessage("AI sedang mengetik...", "ai");
+  addChatMessage(prompt, "user");
 
-  const promptWithHistory = buildPromptWithHistory();
+  const loadingBubble = addChatMessage("PUTRA AI sedang mengetik...", "ai");
 
   try{
+
     const response = await fetch(CHAT_API, {
       method: "POST",
       headers: {
@@ -2154,38 +2319,55 @@ window.testApi = async function(){
         "x-api-key": currentApiKey
       },
       body: JSON.stringify({
-        prompt: promptWithHistory
+        prompt: prompt
       })
     });
 
     const data = await response.json();
 
-    if(data.content){
-      updateAiBubble(loadingBubble, data.content, true);
+    if(!response.ok || !data.success){
 
-      chatHistory.push({
-        role: "assistant",
-        content: data.content
-      });
+      updateAiBubble(
+        loadingBubble,
+        data.message || "Terjadi kesalahan.",
+        false
+      );
 
-    }else{
-
-      const fallbackContent = JSON.stringify(data, null, 2);
-      updateAiBubble(loadingBubble, fallbackContent, true);
-
-      chatHistory.push({
-        role: "assistant",
-        content: fallbackContent
-      });
-
+      return;
     }
+
+    // =========================
+    // UPDATE CHAT
+    // =========================
+
+    updateAiBubble(
+      loadingBubble,
+      data.content || "Tidak ada respon AI."
+    );
+
+    // =========================
+    // UPDATE USAGE PANEL
+    // =========================
+
+    const used = Number(data.used || 0);
+    const limit = Number(data.limit || 100);
+
+    updateUsagePanel(used, limit);
+
+    // OPTIONAL
+    currentUsageUsed = used;
+    currentUsageLimit = limit;
 
   }catch(err){
 
-    loadingBubble.classList.add("error");
-    loadingBubble.innerText = err.message;
+    updateAiBubble(
+      loadingBubble,
+      err.message || "Server error.",
+      false
+    );
 
   }
+
 };
 
 document.getElementById("testPrompt").addEventListener("keydown", (event) => {
@@ -2197,6 +2379,12 @@ document.getElementById("testPrompt").addEventListener("keydown", (event) => {
 
 onAuthStateChanged(auth, async (user) => {
   if(user){
+    if(!user.emailVerified){
+      await sendVerificationEmail(user);
+      await signOut(auth);
+      return;
+    }
+
     resetChatHistory(true);
 
     document.getElementById("authBox").classList.add("hidden");
@@ -2215,6 +2403,8 @@ onAuthStateChanged(auth, async (user) => {
   }else{
 
     currentApiKey = "";
+    currentUsageUsed = 0;
+    currentUsageLimit = 100;
     clearTimeout(reviewTimer);
     document.getElementById("reviewModal").classList.add("hidden");
     resetChatHistory(false);
