@@ -947,7 +947,6 @@ import {
 import {
   getFirestore,
   doc,
-  setDoc,
   getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -961,6 +960,9 @@ const firebaseConfig = {
   appId: "1:520643585460:web:e86caf42b27344a2df3ee1",
   measurementId: "G-6GX7G5JDN2"
 };
+
+const CREATE_USER_API = "https://api-save-520643585460.us-central1.run.app";
+const CHAT_API = "https://api-mzmdqh3n6a-uc.a.run.app/chat";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -1023,11 +1025,13 @@ function getAuthInput(){
 
 function getAuthErrorMessage(error){
   const code = error.code || "";
+
   if(code.includes("auth/invalid-email")) return "Format email tidak valid.";
   if(code.includes("auth/email-already-in-use")) return "Email sudah terdaftar. Silakan login.";
   if(code.includes("auth/invalid-credential")) return "Email atau password salah.";
   if(code.includes("auth/wrong-password")) return "Password salah.";
   if(code.includes("auth/weak-password")) return "Password minimal 6 karakter.";
+
   return error.message || "Terjadi kesalahan.";
 }
 
@@ -1037,12 +1041,20 @@ window.setAuthMode = function(mode){
 
   document.getElementById("loginTab").classList.toggle("active", mode === "login");
   document.getElementById("registerTab").classList.toggle("active", mode === "register");
+
   document.getElementById("authTitle").innerText = mode === "login" ? "Login" : "Register";
+
   document.getElementById("authSubtitle").innerText = mode === "login"
     ? "Masuk untuk melihat API key kamu."
     : "Buat akun baru dan dapatkan API key otomatis.";
-  document.getElementById("password").setAttribute("autocomplete", mode === "login" ? "current-password" : "new-password");
+
+  document.getElementById("password").setAttribute(
+    "autocomplete",
+    mode === "login" ? "current-password" : "new-password"
+  );
+
   document.getElementById("authSubmitBtn").innerText = mode === "login" ? "Login" : "Buat Akun";
+
   document.getElementById("authFooter").innerHTML = mode === "login"
     ? "Belum punya akun? <span onclick=\"setAuthMode('register')\">Register sekarang</span>"
     : "Sudah punya akun? <span onclick=\"setAuthMode('login')\">Login sekarang</span>";
@@ -1050,9 +1062,13 @@ window.setAuthMode = function(mode){
 
 window.openAuthModal = function(mode = "login"){
   if(auth.currentUser) return;
+
   setAuthMode(mode);
   document.getElementById("authModal").classList.remove("hidden");
-  setTimeout(() => document.getElementById("email").focus(), 50);
+
+  setTimeout(() => {
+    document.getElementById("email").focus();
+  }, 50);
 };
 
 window.closeAuthModal = function(event){
@@ -1067,34 +1083,30 @@ document.addEventListener("keydown", (event) => {
 });
 
 const firstPage = location.hash ? location.hash.replace("#", "") : "home";
+
 if(document.getElementById(firstPage)?.classList.contains("page")){
   showPage(firstPage);
 }
 
-function generateApiKey(){
-  const random = crypto.randomUUID().replaceAll("-", "");
-  return "pk_live_" + random;
-}
-
-async function saveApiKey(user, apiKey){
-  const limit = 100;
-
-  await setDoc(doc(db, "users", user.uid), {
-    uid: user.uid,
-    email: user.email,
-    apiKey: apiKey,
-    limit: limit,
-    active: true,
-    createdAt: Date.now()
+async function createUserProfileInBackend(user){
+  const response = await fetch(CREATE_USER_API, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      uid: user.uid,
+      email: user.email
+    })
   });
 
-  await setDoc(doc(db, "api_keys", apiKey), {
-    uid: user.uid,
-    email: user.email,
-    limit: limit,
-    active: true,
-    createdAt: Date.now()
-  });
+  const data = await response.json();
+
+  if(!response.ok || data.success === false){
+    throw new Error(data.message || data.error || "Gagal menyimpan data user ke backend.");
+  }
+
+  return data;
 }
 
 window.registerUser = async function(){
@@ -1104,19 +1116,27 @@ window.registerUser = async function(){
   try{
     setAuthLoading(true);
 
-    const userCred = await createUserWithEmailAndPassword(auth, input.email, input.password);
+    const userCred = await createUserWithEmailAndPassword(
+      auth,
+      input.email,
+      input.password
+    );
+
     const user = userCred.user;
 
-    const apiKey = generateApiKey();
-
-    await saveApiKey(user, apiKey);
+    await createUserProfileInBackend(user);
 
     showAuthMessage("Akun berhasil dibuat.", "success");
     closeAuthModal();
+
   }catch(err){
+
     showAuthMessage(getAuthErrorMessage(err));
+
   }finally{
+
     setAuthLoading(false);
+
   }
 };
 
@@ -1126,12 +1146,23 @@ window.loginUser = async function(){
 
   try{
     setAuthLoading(true);
-    await signInWithEmailAndPassword(auth, input.email, input.password);
+
+    await signInWithEmailAndPassword(
+      auth,
+      input.email,
+      input.password
+    );
+
     closeAuthModal();
+
   }catch(err){
+
     showAuthMessage(getAuthErrorMessage(err));
+
   }finally{
+
     setAuthLoading(false);
+
   }
 };
 
@@ -1149,6 +1180,11 @@ window.logoutUser = async function(){
 };
 
 window.copyApiKey = async function(){
+  if(!currentApiKey){
+    alert("API key belum tersedia.");
+    return;
+  }
+
   await navigator.clipboard.writeText(currentApiKey);
   alert("API key disalin.");
 };
@@ -1156,10 +1192,13 @@ window.copyApiKey = async function(){
 function addChatMessage(message, type = "ai"){
   const chatMessages = document.getElementById("chatMessages");
   const bubble = document.createElement("div");
+
   bubble.className = "chat-bubble " + type;
   bubble.innerText = message;
+
   chatMessages.appendChild(bubble);
   chatMessages.scrollTop = chatMessages.scrollHeight;
+
   return bubble;
 }
 
@@ -1180,7 +1219,9 @@ ${recentHistory}
 
 function resetChatHistory(isLoggedIn = false){
   chatHistory = [];
+
   const chatMessages = document.getElementById("chatMessages");
+
   const greeting = isLoggedIn
     ? "Halo, aku siap bantu test API kamu. Tulis pertanyaan atau prompt di bawah."
     : "Halo, aku siap bantu test API kamu. Login dulu, lalu tulis pertanyaan atau prompt di bawah.";
@@ -1194,22 +1235,37 @@ function resetChatHistory(isLoggedIn = false){
   }
 }
 
-async function loadUserData(user){
-  const userRef = doc(db, "users", user.uid);
-  const userSnap = await getDoc(userRef);
+async function waitForUserProfile(user, maxTry = 10){
+  for(let i = 0; i < maxTry; i++){
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
 
-  if(!userSnap.exists()){
-    const apiKey = generateApiKey();
-    await saveApiKey(user, apiKey);
-    return loadUserData(user);
+    if(userSnap.exists()){
+      return userSnap.data();
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 700));
   }
 
-  const data = userSnap.data();
+  return null;
+}
 
-  currentApiKey = data.apiKey;
-
+async function loadUserData(user){
   document.getElementById("userEmail").innerText = user.email;
-  document.getElementById("apiKeyBox").innerText = data.apiKey;
+  document.getElementById("apiKeyBox").innerText = "Memuat API key...";
+  document.getElementById("limitBox").innerText = "100";
+
+  const data = await waitForUserProfile(user);
+
+  if(!data){
+    currentApiKey = "";
+    document.getElementById("apiKeyBox").innerText = "API key belum tersedia. Silakan logout lalu login kembali.";
+    return;
+  }
+
+  currentApiKey = data.apiKey || "";
+
+  document.getElementById("apiKeyBox").innerText = currentApiKey || "API key kosong.";
   document.getElementById("limitBox").innerText = data.limit || 100;
 }
 
@@ -1228,17 +1284,20 @@ window.testApi = async function(){
   }
 
   addChatMessage(prompt, "user");
+
   chatHistory.push({
     role: "user",
     content: prompt
   });
 
   promptInput.value = "";
+
   const loadingBubble = addChatMessage("AI sedang mengetik...", "ai");
+
   const promptWithHistory = buildPromptWithHistory();
 
   try{
-    const response = await fetch("https://api-mzmdqh3n6a-uc.a.run.app/chat", {
+    const response = await fetch(CHAT_API, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -1253,21 +1312,29 @@ window.testApi = async function(){
 
     if(data.content){
       loadingBubble.innerText = data.content;
+
       chatHistory.push({
         role: "assistant",
         content: data.content
       });
+
     }else{
+
       const fallbackContent = JSON.stringify(data, null, 2);
       loadingBubble.innerText = fallbackContent;
+
       chatHistory.push({
         role: "assistant",
         content: fallbackContent
       });
+
     }
+
   }catch(err){
+
     loadingBubble.classList.add("error");
     loadingBubble.innerText = err.message;
+
   }
 };
 
@@ -1281,15 +1348,19 @@ document.getElementById("testPrompt").addEventListener("keydown", (event) => {
 onAuthStateChanged(auth, async (user) => {
   if(user){
     resetChatHistory(true);
+
     document.getElementById("authBox").classList.add("hidden");
     document.getElementById("dashboardBox").classList.remove("hidden");
     document.getElementById("navAuth").classList.add("hidden");
     document.getElementById("navUser").classList.remove("hidden");
     document.getElementById("heroAuth").classList.add("hidden");
+
     closeAuthModal();
 
     await loadUserData(user);
+
   }else{
+
     currentApiKey = "";
     resetChatHistory(false);
 
@@ -1298,6 +1369,7 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById("navAuth").classList.remove("hidden");
     document.getElementById("navUser").classList.add("hidden");
     document.getElementById("heroAuth").classList.remove("hidden");
+
   }
 });
 </script>
