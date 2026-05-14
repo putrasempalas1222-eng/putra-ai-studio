@@ -9,15 +9,30 @@
 <link rel="shortcut icon" href="https://api.iconify.design/solar:stars-bold.svg?color=%23ffffff">
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",Arial,sans-serif}
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","SF Compact Display","SF Compact Text","Helvetica Neue","Segoe UI",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+}
 
 :root{
   --bg:#f6f8ff;
   --ink:#101828;
+  --body-bg:
+    linear-gradient(135deg,rgba(10,132,255,.18),transparent 30%),
+    linear-gradient(225deg,rgba(255,45,85,.13),transparent 34%),
+    linear-gradient(180deg,#fbfcff 0%,#eef4ff 48%,#f8f7ff 100%);
+  --grid-lines:linear-gradient(rgba(10,132,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,45,85,.04) 1px,transparent 1px);
   --surface:rgba(255,255,255,.72);
   --surface-strong:rgba(255,255,255,.9);
   --line:rgba(16,24,40,.12);
   --line-soft:rgba(255,255,255,.58);
+  --glass-highlight:rgba(255,255,255,.74);
+  --glass-inset:inset 0 1px 0 rgba(255,255,255,.72),inset 0 -1px 0 rgba(255,255,255,.22);
   --text:#101828;
   --muted:#667085;
   --blue:#0a84ff;
@@ -26,16 +41,48 @@
   --pink:#ff2d55;
   --purple:#af52de;
   --rose:#ff3b30;
+  --nav-bg:rgba(255,255,255,.64);
+  --card-shadow:0 24px 80px rgba(15,23,42,.12);
+  --nav-shadow:0 18px 60px rgba(15,23,42,.12);
+  --field-bg:rgba(255,255,255,.82);
+  --soft-panel:rgba(255,255,255,.58);
+  --muted-text:#475467;
+  --pre-bg:rgba(255,255,255,.68);
+  --modal-bg:rgba(238,244,255,.68);
+}
+
+body.night{
+  --bg:#0b1020;
+  --ink:#f8fafc;
+  --body-bg:
+    linear-gradient(135deg,rgba(10,132,255,.24),transparent 32%),
+    linear-gradient(225deg,rgba(175,82,222,.18),transparent 36%),
+    linear-gradient(180deg,#080c18 0%,#111827 52%,#15102a 100%);
+  --grid-lines:linear-gradient(rgba(148,163,184,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.07) 1px,transparent 1px);
+  --surface:rgba(15,23,42,.72);
+  --surface-strong:rgba(15,23,42,.9);
+  --line:rgba(226,232,240,.14);
+  --line-soft:rgba(255,255,255,.12);
+  --glass-highlight:rgba(255,255,255,.18);
+  --glass-inset:inset 0 1px 0 rgba(255,255,255,.18),inset 0 -1px 0 rgba(255,255,255,.06);
+  --text:#f8fafc;
+  --muted:#94a3b8;
+  --nav-bg:rgba(15,23,42,.68);
+  --card-shadow:0 24px 80px rgba(0,0,0,.28);
+  --nav-shadow:0 18px 60px rgba(0,0,0,.3);
+  --field-bg:rgba(15,23,42,.78);
+  --soft-panel:rgba(30,41,59,.62);
+  --muted-text:#cbd5e1;
+  --pre-bg:rgba(15,23,42,.72);
+  --modal-bg:rgba(2,6,23,.72);
 }
 
 html{scroll-behavior:smooth}
 body{
   min-height:100vh;
   color:var(--text);
-  background:
-    linear-gradient(135deg,rgba(10,132,255,.18),transparent 30%),
-    linear-gradient(225deg,rgba(255,45,85,.13),transparent 34%),
-    linear-gradient(180deg,#fbfcff 0%,#eef4ff 48%,#f8f7ff 100%);
+  background:var(--body-bg);
+  font-feature-settings:"kern" 1;
 }
 
 body:before{
@@ -43,7 +90,7 @@ body:before{
   position:fixed;
   inset:0;
   pointer-events:none;
-  background-image:linear-gradient(rgba(10,132,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,45,85,.04) 1px,transparent 1px);
+  background-image:var(--grid-lines);
   background-size:48px 48px;
   mask-image:linear-gradient(to bottom,rgba(0,0,0,.35),transparent 75%);
 }
@@ -58,11 +105,29 @@ nav{
   position:sticky;
   top:16px;
   z-index:99;
-  border:1px solid var(--line-soft);
+  isolation:isolate;
+  border:1px solid var(--glass-highlight);
   border-radius:28px;
-  background:rgba(255,255,255,.64);
-  backdrop-filter:blur(28px) saturate(170%);
-  box-shadow:0 18px 60px rgba(15,23,42,.12);
+  background:var(--nav-bg);
+  backdrop-filter:blur(38px) saturate(190%);
+  -webkit-backdrop-filter:blur(38px) saturate(190%);
+  box-shadow:var(--nav-shadow),var(--glass-inset);
+}
+
+nav:before,.card:after,.modal-card:before{
+  content:"";
+  position:absolute;
+  pointer-events:none;
+  inset:1px;
+  border-radius:inherit;
+  background:linear-gradient(180deg,rgba(255,255,255,.34),transparent 38%);
+  opacity:.72;
+}
+
+nav>*,
+.card>*,
+.modal-card>*{
+  position:relative;
 }
 
 .logo{
@@ -97,6 +162,39 @@ nav{
 
 .mobile-btn{display:none;font-size:26px;cursor:pointer;color:var(--ink)}
 .nav-auth{display:flex;gap:8px;align-items:center}
+
+.theme-toggle{
+  width:46px;
+  height:46px;
+  padding:0;
+  margin-top:0;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:var(--soft-panel);
+  border:1px solid var(--line);
+  box-shadow:0 12px 28px rgba(15,23,42,.08);
+}
+
+.theme-toggle img{
+  width:22px;
+  height:22px;
+}
+
+.logout-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+
+.logout-btn img{
+  width:19px;
+  height:19px;
+}
+
+.mobile-actions{display:none;align-items:center;gap:8px}
+.mobile-menu-left{display:none}
 
 section{width:min(1180px,calc(100% - 32px));margin:0 auto;padding:56px 0}
 .page{display:none}
@@ -143,7 +241,7 @@ section{width:min(1180px,calc(100% - 32px));margin:0 auto;padding:56px 0}
 
 .hero p{
   max-width:640px;
-  color:#475467;
+  color:var(--muted-text);
   font-size:17px;
   line-height:1.75;
 }
@@ -212,12 +310,14 @@ section{width:min(1180px,calc(100% - 32px));margin:0 auto;padding:56px 0}
 }
 
 .card{
+  position:relative;
   background:var(--surface);
-  border:1px solid var(--line-soft);
+  border:1px solid var(--glass-highlight);
   border-radius:32px;
   padding:24px;
-  box-shadow:0 24px 80px rgba(15,23,42,.12);
-  backdrop-filter:blur(26px) saturate(165%);
+  box-shadow:var(--card-shadow),var(--glass-inset);
+  backdrop-filter:blur(34px) saturate(190%);
+  -webkit-backdrop-filter:blur(34px) saturate(190%);
 }
 
 input,textarea{
@@ -226,7 +326,7 @@ input,textarea{
   margin-bottom:12px;
   outline:none;
   border-radius:20px;
-  background:rgba(255,255,255,.82);
+  background:var(--field-bg);
   color:var(--ink);
   font-size:15px;
   border:1px solid var(--line);
@@ -258,7 +358,7 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
 }
 
 .secondary{
-  background:rgba(255,255,255,.74);
+  background:var(--soft-panel);
   color:var(--text);
   border:1px solid var(--line);
   box-shadow:0 12px 28px rgba(15,23,42,.08);
@@ -274,10 +374,11 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
 }
 
 .metric{
-  background:rgba(255,255,255,.58);
-  border:1px solid var(--line-soft);
+  background:var(--soft-panel);
+  border:1px solid var(--glass-highlight);
   border-radius:24px;
   padding:16px;
+  box-shadow:var(--glass-inset);
 }
 .metric span{display:block;color:var(--muted);font-size:12px;font-weight:800;margin-bottom:8px}
 .metric b{font-size:24px;color:var(--ink)}
@@ -290,7 +391,7 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
   display:flex;
   align-items:center;
   justify-content:center;
-  background:rgba(238,244,255,.68);
+  background:var(--modal-bg);
   backdrop-filter:blur(24px) saturate(175%);
   padding:20px;
   z-index:999;
@@ -299,12 +400,13 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
 .modal-card{
   width:100%;
   max-width:440px;
-  background:rgba(255,255,255,.78);
-  border:1px solid rgba(255,255,255,.62);
+  background:var(--surface-strong);
+  border:1px solid var(--glass-highlight);
   border-radius:34px;
   padding:26px;
-  box-shadow:0 34px 110px rgba(15,23,42,.2);
-  backdrop-filter:blur(28px) saturate(170%);
+  box-shadow:0 34px 110px rgba(15,23,42,.2),var(--glass-inset);
+  backdrop-filter:blur(38px) saturate(190%);
+  -webkit-backdrop-filter:blur(38px) saturate(190%);
   animation:modalPop .22s ease;
 }
 @keyframes modalPop{from{transform:translateY(14px) scale(.97);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
@@ -334,14 +436,14 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
   margin-bottom:16px;
 }
 .auth-tabs button{margin-top:0;border-radius:999px;background:transparent;color:var(--muted);box-shadow:none}
-.auth-tabs button.active{background:white;color:var(--blue);box-shadow:0 10px 24px rgba(15,23,42,.12)}
+.auth-tabs button.active{background:var(--surface-strong);color:var(--blue);box-shadow:0 10px 24px rgba(15,23,42,.12)}
 .auth-message{
-  background:rgba(255,255,255,.76);
+  background:var(--pre-bg);
   border:1px solid var(--line);
   border-radius:14px;
   padding:12px;
   margin-bottom:12px;
-  color:#475467;
+  color:var(--muted-text);
   font-size:14px;
 }
 .auth-message.error{color:#fecaca;border-color:rgba(248,113,113,.7)}
@@ -350,15 +452,16 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
 .auth-footer span{color:var(--blue);font-weight:900;cursor:pointer}
 
 .api-box,pre{
-  background:rgba(255,255,255,.68);
+  background:var(--pre-bg);
   border:1px solid var(--line);
   border-radius:20px;
   padding:16px;
   margin-top:12px;
-  color:#1d2939;
+  color:var(--text);
   overflow:auto;
   white-space:pre-wrap;
   word-break:break-word;
+  box-shadow:var(--glass-inset);
 }
 
 .chat-shell{
@@ -376,7 +479,7 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
   gap:16px;
   padding:22px 24px;
   border-bottom:1px solid var(--line-soft);
-  background:rgba(255,255,255,.36);
+  background:var(--soft-panel);
 }
 
 .chat-title{
@@ -460,10 +563,11 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
 
 .chat-bubble.ai{
   align-self:flex-start;
-  color:#1d2939;
-  background:rgba(255,255,255,.78);
-  border:1px solid var(--line-soft);
+  color:var(--text);
+  background:var(--pre-bg);
+  border:1px solid var(--glass-highlight);
   border-bottom-left-radius:8px;
+  box-shadow:0 14px 30px rgba(15,23,42,.08),var(--glass-inset);
 }
 
 .chat-bubble.user{
@@ -479,13 +583,34 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
   border:1px solid rgba(248,113,113,.42);
 }
 
+.speak-btn{
+  width:auto;
+  min-width:96px;
+  padding:9px 12px;
+  margin-top:12px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  color:var(--blue);
+  background:var(--soft-panel);
+  border:1px solid var(--line);
+  box-shadow:var(--glass-inset);
+  font-size:13px;
+}
+
+.speak-btn img{
+  width:17px;
+  height:17px;
+}
+
 .chat-composer{
   display:grid;
   grid-template-columns:1fr auto;
   gap:12px;
   padding:18px;
   border-top:1px solid var(--line-soft);
-  background:rgba(255,255,255,.42);
+  background:var(--soft-panel);
 }
 
 .chat-composer textarea{
@@ -514,12 +639,12 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
   padding:0 24px 18px;
   color:var(--muted);
   font-size:13px;
-  background:rgba(255,255,255,.42);
+  background:var(--soft-panel);
 }
 
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
 .feature h3{color:var(--ink);margin-bottom:10px}
-.feature p,.doc p{color:#475467;line-height:1.65}
+.feature p,.doc p{color:var(--muted-text);line-height:1.65}
 .title{font-size:34px;margin-bottom:22px;letter-spacing:0}
 .doc h3{margin-top:25px;margin-bottom:10px;color:var(--blue)}
 
@@ -558,7 +683,7 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
 }
 
 .about-profile p,.about-detail p{
-  color:#475467;
+  color:var(--muted-text);
   line-height:1.75;
 }
 
@@ -578,9 +703,10 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
   text-decoration:none;
   color:var(--ink);
   font-weight:900;
-  background:rgba(255,255,255,.62);
-  border:1px solid var(--line-soft);
+  background:var(--soft-panel);
+  border:1px solid var(--glass-highlight);
   border-radius:20px;
+  box-shadow:var(--glass-inset);
   transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
 }
 
@@ -613,7 +739,7 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
 
 .plan-card.featured{
   border-color:rgba(10,132,255,.34);
-  box-shadow:0 28px 90px rgba(10,132,255,.18);
+  box-shadow:0 28px 90px rgba(10,132,255,.18),var(--glass-inset);
 }
 
 .plan-card.featured:before{
@@ -668,7 +794,7 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
 }
 
 .plan-card p{
-  color:#475467;
+  color:var(--muted-text);
   line-height:1.65;
 }
 
@@ -682,7 +808,7 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
   display:flex;
   align-items:flex-start;
   gap:9px;
-  color:#344054;
+  color:var(--text);
   line-height:1.45;
   font-weight:700;
 }
@@ -705,7 +831,8 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
   margin-bottom:14px;
   border:1px solid var(--line);
   border-radius:20px;
-  background:rgba(255,255,255,.62);
+  background:var(--soft-panel);
+  box-shadow:var(--glass-inset);
 }
 
 .payment-row{
@@ -713,7 +840,7 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
   align-items:center;
   justify-content:space-between;
   gap:14px;
-  color:#475467;
+  color:var(--muted-text);
   font-size:14px;
   font-weight:800;
 }
@@ -728,9 +855,10 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
   place-items:center;
   min-height:250px;
   padding:18px;
-  border:1px solid var(--line-soft);
+  border:1px solid var(--glass-highlight);
   border-radius:24px;
-  background:rgba(255,255,255,.74);
+  background:var(--pre-bg);
+  box-shadow:var(--glass-inset);
 }
 
 .payment-qr canvas{
@@ -746,6 +874,47 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
   margin-top:14px;
 }
 
+.rating-stars{
+  display:flex;
+  gap:8px;
+  margin:12px 0 16px;
+}
+
+.rating-star{
+  width:48px;
+  height:48px;
+  padding:0;
+  margin-top:0;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:var(--soft-panel);
+  border:1px solid var(--line);
+  box-shadow:var(--glass-inset);
+}
+
+.rating-star img{
+  width:26px;
+  height:26px;
+  opacity:.45;
+  transition:opacity .18s ease,transform .18s ease;
+}
+
+.rating-star.active img,
+.rating-star:hover img{
+  opacity:1;
+  transform:scale(1.08);
+}
+
+.review-actions{
+  display:flex;
+  gap:10px;
+}
+
+.review-actions button{
+  margin-top:0;
+}
+
 footer{
   width:min(1180px,calc(100% - 32px));
   margin:0 auto 20px;
@@ -755,7 +924,18 @@ footer{
 }
 
 @media(max-width:900px){
-  nav{top:10px;width:calc(100% - 20px);margin-top:10px}
+  nav{top:10px;width:calc(100% - 20px);margin-top:10px;position:sticky;justify-content:center;min-height:70px}
+  .logo{
+    position:absolute;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:15px;
+    max-width:calc(100% - 190px);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .logo img{display:none}
   section{width:calc(100% - 24px);padding:38px 0}
   .hero{grid-template-columns:1fr;min-height:auto;padding-top:30px}
   .hero h1{font-size:42px}
@@ -775,17 +955,41 @@ footer{
     top:68px;
     right:0;
     left:0;
-    background:rgba(255,255,255,.86);
+    background:var(--surface-strong);
     padding:12px;
     border-radius:18px;
     flex-direction:column;
     align-items:stretch;
     border:1px solid var(--line-soft);
-    backdrop-filter:blur(24px) saturate(165%);
+    backdrop-filter:blur(34px) saturate(190%);
+    -webkit-backdrop-filter:blur(34px) saturate(190%);
+    box-shadow:var(--glass-inset);
   }
   .menu.active{display:flex}
+  .mobile-menu-left{
+    display:block;
+    position:absolute;
+    left:16px;
+  }
+  .mobile-actions{
+    display:flex;
+    position:absolute;
+    right:12px;
+    align-items:center;
+    gap:6px;
+    z-index:3;
+  }
   .mobile-btn{display:block}
   .nav-auth{display:none}
+  #navUser:not(.hidden){display:none}
+  .mobile-logout{
+    width:46px;
+    height:46px;
+    padding:0;
+    border-radius:50%;
+    margin-top:0;
+  }
+  .mobile-logout span{display:none}
 }
 </style>
 </head>
@@ -793,12 +997,24 @@ footer{
 <body>
 
 <nav>
+  <div class="mobile-menu-left">
+    <div class="mobile-btn" onclick="toggleMenu()">&#9776;</div>
+  </div>
+
   <div class="logo">
     <img src="https://api.iconify.design/solar:stars-bold.svg?color=%23ffffff" alt="Putra AI Studio Logo">
     PUTRA AI STUDIO
   </div>
 
-  <div class="mobile-btn" onclick="toggleMenu()">&#9776;</div>
+  <div class="mobile-actions">
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Ganti tema">
+      <img id="themeIconMobile" src="https://api.iconify.design/solar:moon-bold.svg?color=%23101828" alt="">
+    </button>
+    <button class="danger logout-btn mobile-logout hidden" id="mobileLogoutBtn" onclick="logoutUser()" aria-label="Logout">
+      <img src="https://api.iconify.design/solar:logout-3-bold.svg?color=%23ffffff" alt="">
+      <span>Logout</span>
+    </button>
+  </div>
 
   <div class="menu" id="menu">
     <a href="#home" class="active" data-page="home" onclick="showPage('home')">Home</a>
@@ -810,12 +1026,19 @@ footer{
   </div>
 
   <div class="nav-auth" id="navAuth">
-    <button class="secondary" onclick="openAuthModal('login')">Login</button>
-    <button onclick="openAuthModal('register')">Register</button>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Ganti tema">
+      <img id="themeIcon" src="https://api.iconify.design/solar:moon-bold.svg?color=%23101828" alt="">
+    </button>
   </div>
 
   <div class="nav-auth hidden" id="navUser">
-    <button class="danger" onclick="logoutUser()">Logout</button>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Ganti tema">
+      <img id="themeIconUser" src="https://api.iconify.design/solar:moon-bold.svg?color=%23101828" alt="">
+    </button>
+    <button class="danger logout-btn" onclick="logoutUser()" aria-label="Logout">
+      <img src="https://api.iconify.design/solar:logout-3-bold.svg?color=%23ffffff" alt="">
+      <span>Logout</span>
+    </button>
   </div>
 </nav>
 
@@ -844,7 +1067,7 @@ footer{
       </div>
 
       <div id="authBox">
-        <p style="color:#475467;line-height:1.7;margin-top:10px;">
+        <p style="color:var(--muted-text);line-height:1.7;margin-top:10px;">
           Login atau register lewat pop-up untuk mendapatkan API key kamu.
         </p>
 
@@ -858,15 +1081,10 @@ footer{
             <b>Ready</b>
           </div>
         </div>
-
-        <div class="auth-actions">
-          <button onclick="openAuthModal('login')">Login</button>
-          <button class="secondary" onclick="openAuthModal('register')">Register</button>
-        </div>
       </div>
 
       <div id="dashboardBox" class="hidden">
-        <p style="color:#475467;">Login sebagai: <b id="userEmail"></b></p>
+        <p style="color:var(--muted-text);">Login sebagai: <b id="userEmail"></b></p>
 
         <div class="metric-row">
           <div class="metric">
@@ -884,7 +1102,6 @@ footer{
         <div class="api-box" id="apiKeyBox">Loading...</div>
 
         <button onclick="copyApiKey()">Copy API Key</button>
-        <button class="danger" onclick="logoutUser()">Logout</button>
       </div>
     </div>
   </div>
@@ -1213,6 +1430,45 @@ print(data.get("content", data))</pre>
   </div>
 </div>
 
+<div class="modal hidden" id="reviewModal" onclick="closeReviewModal(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-top">
+      <div>
+        <h2 class="modal-title">Beri Ulasan</h2>
+        <p class="modal-subtitle">Bagaimana pengalaman kamu memakai PUTRA AI STUDIO?</p>
+      </div>
+      <button class="close-btn" onclick="closeReviewModal()" aria-label="Tutup">&times;</button>
+    </div>
+
+    <div class="rating-stars" id="ratingStars">
+      <button class="rating-star" onclick="setReviewRating(1)" aria-label="Rating 1">
+        <img src="https://api.iconify.design/solar:star-bold.svg?color=%23ffcc00" alt="">
+      </button>
+      <button class="rating-star" onclick="setReviewRating(2)" aria-label="Rating 2">
+        <img src="https://api.iconify.design/solar:star-bold.svg?color=%23ffcc00" alt="">
+      </button>
+      <button class="rating-star" onclick="setReviewRating(3)" aria-label="Rating 3">
+        <img src="https://api.iconify.design/solar:star-bold.svg?color=%23ffcc00" alt="">
+      </button>
+      <button class="rating-star" onclick="setReviewRating(4)" aria-label="Rating 4">
+        <img src="https://api.iconify.design/solar:star-bold.svg?color=%23ffcc00" alt="">
+      </button>
+      <button class="rating-star" onclick="setReviewRating(5)" aria-label="Rating 5">
+        <img src="https://api.iconify.design/solar:star-bold.svg?color=%23ffcc00" alt="">
+      </button>
+    </div>
+
+    <div id="reviewMessage" class="auth-message hidden"></div>
+
+    <textarea id="reviewText" placeholder="Tulis ulasan kamu..."></textarea>
+
+    <div class="review-actions">
+      <button onclick="submitReview()">Kirim</button>
+      <button class="secondary" onclick="cancelReview()">Batal</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -1228,7 +1484,8 @@ import {
 import {
   getFirestore,
   doc,
-  getDoc
+  getDoc,
+  setDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -1262,6 +1519,33 @@ let authMode = "login";
 let chatHistory = [];
 let selectedPaymentPlan = "";
 let selectedPaymentInvoice = "";
+let reviewRating = 0;
+let reviewTimer = null;
+const REVIEW_DELAY = 60000;
+const REVIEW_RETRY_DELAY = 60000;
+
+function applyTheme(theme){
+  const isNight = theme === "night";
+  document.body.classList.toggle("night", isNight);
+
+  const iconUrl = isNight
+    ? "https://api.iconify.design/solar:sun-2-bold.svg?color=%23f8fafc"
+    : "https://api.iconify.design/solar:moon-bold.svg?color=%23101828";
+
+  ["themeIcon", "themeIconUser", "themeIconMobile"].forEach((id) => {
+    const icon = document.getElementById(id);
+    if(icon) icon.src = iconUrl;
+  });
+
+  localStorage.setItem("putraTheme", theme);
+}
+
+window.toggleTheme = function(){
+  const nextTheme = document.body.classList.contains("night") ? "light" : "night";
+  applyTheme(nextTheme);
+};
+
+applyTheme(localStorage.getItem("putraTheme") || "light");
 
 window.toggleMenu = function(){
   document.getElementById("menu").classList.toggle("active");
@@ -1371,6 +1655,7 @@ document.addEventListener("keydown", (event) => {
   if(event.key === "Escape"){
     closeAuthModal();
     closePaymentModal();
+    closeReviewModal();
   }
 });
 
@@ -1587,7 +1872,135 @@ window.createQrisPayment = async function(){
   }
 };
 
-function addChatMessage(message, type = "ai"){
+function getReviewSentKey(user){
+  return "putraReviewSent_" + user.uid;
+}
+
+function getReviewDelayKey(user){
+  return "putraReviewDelay_" + user.uid;
+}
+
+function hasSentReview(user){
+  return localStorage.getItem(getReviewSentKey(user)) === "true";
+}
+
+function scheduleReviewPopup(user, delay = REVIEW_DELAY){
+  clearTimeout(reviewTimer);
+
+  if(!user || hasSentReview(user)) return;
+
+  const delayedUntil = Number(localStorage.getItem(getReviewDelayKey(user)) || 0);
+  const now = Date.now();
+  const finalDelay = Math.max(delay, delayedUntil - now, 0);
+
+  reviewTimer = setTimeout(() => {
+    if(auth.currentUser && auth.currentUser.uid === user.uid && !hasSentReview(user)){
+      openReviewModal();
+    }
+  }, finalDelay);
+}
+
+function showReviewMessage(message, type = "error"){
+  const messageBox = document.getElementById("reviewMessage");
+  messageBox.innerText = message;
+  messageBox.className = "auth-message " + type;
+}
+
+function clearReviewMessage(){
+  const messageBox = document.getElementById("reviewMessage");
+  messageBox.innerText = "";
+  messageBox.className = "auth-message hidden";
+}
+
+function openReviewModal(){
+  reviewRating = 0;
+  document.getElementById("reviewText").value = "";
+  clearReviewMessage();
+  updateReviewStars();
+  document.getElementById("reviewModal").classList.remove("hidden");
+}
+
+window.closeReviewModal = function(event){
+  if(event && event.target !== document.getElementById("reviewModal")) return;
+  if(document.getElementById("reviewModal").classList.contains("hidden")) return;
+  cancelReview();
+};
+
+window.setReviewRating = function(rating){
+  reviewRating = rating;
+  updateReviewStars();
+};
+
+function updateReviewStars(){
+  document.querySelectorAll(".rating-star").forEach((star, index) => {
+    star.classList.toggle("active", index < reviewRating);
+  });
+}
+
+window.cancelReview = function(){
+  document.getElementById("reviewModal").classList.add("hidden");
+
+  const user = auth.currentUser;
+  if(!user || hasSentReview(user)) return;
+
+  localStorage.setItem(getReviewDelayKey(user), String(Date.now() + REVIEW_RETRY_DELAY));
+  scheduleReviewPopup(user, REVIEW_RETRY_DELAY);
+};
+
+window.submitReview = async function(){
+  const user = auth.currentUser;
+  const reviewText = document.getElementById("reviewText").value.trim();
+
+  if(!user){
+    showReviewMessage("Login dulu untuk mengirim ulasan.");
+    return;
+  }
+
+  if(!reviewRating){
+    showReviewMessage("Pilih rating 1 sampai 5 bintang dulu.");
+    return;
+  }
+
+  if(!reviewText){
+    showReviewMessage("Tulis ulasan kamu dulu.");
+    return;
+  }
+
+  try{
+    showReviewMessage("Mengirim ulasan...", "success");
+
+    await setDoc(doc(db, "reviews", user.uid), {
+      uid: user.uid,
+      email: user.email,
+      rating: reviewRating,
+      review: reviewText,
+      createdAt: Date.now()
+    });
+
+    localStorage.setItem(getReviewSentKey(user), "true");
+    localStorage.removeItem(getReviewDelayKey(user));
+    clearTimeout(reviewTimer);
+    document.getElementById("reviewModal").classList.add("hidden");
+  }catch(err){
+    showReviewMessage(err.message || "Gagal mengirim ulasan.");
+  }
+};
+
+async function syncReviewStatus(user){
+  if(!user || hasSentReview(user)) return;
+
+  try{
+    const reviewSnap = await getDoc(doc(db, "reviews", user.uid));
+    if(reviewSnap.exists()){
+      localStorage.setItem(getReviewSentKey(user), "true");
+      localStorage.removeItem(getReviewDelayKey(user));
+    }
+  }catch(err){
+    console.warn("Gagal mengecek status ulasan:", err);
+  }
+}
+
+function addChatMessage(message, type = "ai", options = {}){
   const chatMessages = document.getElementById("chatMessages");
   const bubble = document.createElement("div");
 
@@ -1597,7 +2010,46 @@ function addChatMessage(message, type = "ai"){
   chatMessages.appendChild(bubble);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 
+  if(options.speak){
+    addSpeakButton(bubble, message);
+  }
+
   return bubble;
+}
+
+function addSpeakButton(bubble, text){
+  const speakButton = document.createElement("button");
+  speakButton.className = "speak-btn";
+  speakButton.innerHTML = "<img src=\"https://api.iconify.design/solar:volume-loud-bold.svg?color=%230a84ff\" alt=\"\">Speak";
+  speakButton.onclick = () => speakText(text);
+  bubble.appendChild(speakButton);
+}
+
+function updateAiBubble(bubble, message, canSpeak = true){
+  bubble.innerText = message;
+
+  if(canSpeak){
+    addSpeakButton(bubble, message);
+  }
+
+  const chatMessages = document.getElementById("chatMessages");
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function speakText(text){
+  if(!("speechSynthesis" in window)){
+    alert("Browser belum mendukung fitur speak.");
+    return;
+  }
+
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "id-ID";
+  utterance.rate = 1;
+  utterance.pitch = 1;
+
+  window.speechSynthesis.speak(utterance);
 }
 
 function buildPromptWithHistory(){
@@ -1709,7 +2161,7 @@ window.testApi = async function(){
     const data = await response.json();
 
     if(data.content){
-      loadingBubble.innerText = data.content;
+      updateAiBubble(loadingBubble, data.content, true);
 
       chatHistory.push({
         role: "assistant",
@@ -1719,7 +2171,7 @@ window.testApi = async function(){
     }else{
 
       const fallbackContent = JSON.stringify(data, null, 2);
-      loadingBubble.innerText = fallbackContent;
+      updateAiBubble(loadingBubble, fallbackContent, true);
 
       chatHistory.push({
         role: "assistant",
@@ -1751,21 +2203,27 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById("dashboardBox").classList.remove("hidden");
     document.getElementById("navAuth").classList.add("hidden");
     document.getElementById("navUser").classList.remove("hidden");
+    document.getElementById("mobileLogoutBtn").classList.remove("hidden");
     document.getElementById("heroAuth").classList.add("hidden");
 
     closeAuthModal();
 
     await loadUserData(user);
+    await syncReviewStatus(user);
+    scheduleReviewPopup(user);
 
   }else{
 
     currentApiKey = "";
+    clearTimeout(reviewTimer);
+    document.getElementById("reviewModal").classList.add("hidden");
     resetChatHistory(false);
 
     document.getElementById("authBox").classList.remove("hidden");
     document.getElementById("dashboardBox").classList.add("hidden");
     document.getElementById("navAuth").classList.remove("hidden");
     document.getElementById("navUser").classList.add("hidden");
+    document.getElementById("mobileLogoutBtn").classList.add("hidden");
     document.getElementById("heroAuth").classList.remove("hidden");
 
   }
