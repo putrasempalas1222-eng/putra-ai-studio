@@ -596,6 +596,156 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
   flex:0 0 auto;
 }
 
+.plan-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+  align-items:stretch;
+}
+
+.plan-card{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  overflow:hidden;
+}
+
+.plan-card.featured{
+  border-color:rgba(10,132,255,.34);
+  box-shadow:0 28px 90px rgba(10,132,255,.18);
+}
+
+.plan-card.featured:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,rgba(10,132,255,.13),transparent 38%),linear-gradient(225deg,rgba(175,82,222,.11),transparent 34%);
+  pointer-events:none;
+}
+
+.plan-card>*{position:relative}
+
+.plan-badge{
+  width:max-content;
+  max-width:100%;
+  padding:8px 11px;
+  border-radius:999px;
+  color:#075fc2;
+  background:rgba(10,132,255,.12);
+  border:1px solid rgba(10,132,255,.18);
+  font-size:12px;
+  font-weight:900;
+}
+
+.plan-badge.current{
+  color:#147a35;
+  background:rgba(52,199,89,.12);
+  border-color:rgba(52,199,89,.22);
+}
+
+.plan-card h3{
+  color:var(--ink);
+  font-size:28px;
+}
+
+.plan-price{
+  display:flex;
+  align-items:flex-end;
+  gap:6px;
+}
+
+.plan-price b{
+  color:var(--ink);
+  font-size:38px;
+  line-height:1;
+}
+
+.plan-price span{
+  color:var(--muted);
+  font-weight:800;
+  padding-bottom:5px;
+}
+
+.plan-card p{
+  color:#475467;
+  line-height:1.65;
+}
+
+.plan-list{
+  display:grid;
+  gap:10px;
+  margin:4px 0;
+}
+
+.plan-list div{
+  display:flex;
+  align-items:flex-start;
+  gap:9px;
+  color:#344054;
+  line-height:1.45;
+  font-weight:700;
+}
+
+.plan-list img{
+  width:18px;
+  height:18px;
+  flex:0 0 auto;
+  margin-top:2px;
+}
+
+.plan-card button{
+  margin-top:auto;
+}
+
+.payment-summary{
+  display:grid;
+  gap:10px;
+  padding:14px;
+  margin-bottom:14px;
+  border:1px solid var(--line);
+  border-radius:20px;
+  background:rgba(255,255,255,.62);
+}
+
+.payment-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  color:#475467;
+  font-size:14px;
+  font-weight:800;
+}
+
+.payment-row b{
+  color:var(--ink);
+  text-align:right;
+}
+
+.payment-qr{
+  display:grid;
+  place-items:center;
+  min-height:250px;
+  padding:18px;
+  border:1px solid var(--line-soft);
+  border-radius:24px;
+  background:rgba(255,255,255,.74);
+}
+
+.payment-qr canvas{
+  width:220px;
+  height:220px;
+  max-width:100%;
+}
+
+.payment-note{
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.55;
+  margin-top:14px;
+}
+
 footer{
   width:min(1180px,calc(100% - 32px));
   margin:0 auto 20px;
@@ -613,6 +763,7 @@ footer{
   .grid{grid-template-columns:1fr}
   .about-layout{grid-template-columns:1fr}
   .social-list{grid-template-columns:1fr}
+  .plan-grid{grid-template-columns:1fr}
   .chat-shell{min-height:560px}
   .chat-top{align-items:flex-start;flex-direction:column}
   .chat-messages{max-height:460px;padding:18px}
@@ -654,6 +805,7 @@ footer{
     <a href="#testapikey" data-page="testapikey" onclick="showPage('testapikey')">Test Api Key</a>
     <a href="#fitur" data-page="fitur" onclick="showPage('fitur')">Fitur</a>
     <a href="#docs" data-page="docs" onclick="showPage('docs')">Dokumentasi</a>
+    <a href="#upgrade" data-page="upgrade" onclick="showPage('upgrade')">Upgrade</a>
     <a href="#about" data-page="about" onclick="showPage('about')">About</a>
   </div>
 
@@ -855,6 +1007,92 @@ print(data.get("content", data))</pre>
   </div>
 </section>
 
+<section class="page" id="upgrade">
+  <h2 class="title">Upgrade Paket</h2>
+
+  <div class="plan-grid">
+    <div class="card plan-card">
+      <div class="plan-badge current">Dipakai sekarang</div>
+      <h3>Basic</h3>
+      <div class="plan-price">
+        <b>Gratis</b>
+      </div>
+      <p>Paket awal untuk mencoba API key dan test chat AI dari dashboard.</p>
+
+      <div class="plan-list">
+        <div>
+          <img src="https://api.iconify.design/solar:check-circle-bold.svg?color=%2334c759" alt="">
+          <span>100 request per hari</span>
+        </div>
+        <div>
+          <img src="https://api.iconify.design/solar:check-circle-bold.svg?color=%2334c759" alt="">
+          <span>API key otomatis</span>
+        </div>
+        <div>
+          <img src="https://api.iconify.design/solar:check-circle-bold.svg?color=%2334c759" alt="">
+          <span>Chat playground standar</span>
+        </div>
+      </div>
+
+      <button class="secondary" disabled>Paket Aktif</button>
+    </div>
+
+    <div class="card plan-card featured">
+      <div class="plan-badge">Rekomendasi</div>
+      <h3>Plus</h3>
+      <div class="plan-price">
+        <b>Rp299K</b>
+        <span>/bulan</span>
+      </div>
+      <p>Cocok untuk project kecil yang butuh limit lebih besar dan respons lebih nyaman.</p>
+
+      <div class="plan-list">
+        <div>
+          <img src="https://api.iconify.design/solar:check-circle-bold.svg?color=%2334c759" alt="">
+          <span>1.000 request per hari</span>
+        </div>
+        <div>
+          <img src="https://api.iconify.design/solar:check-circle-bold.svg?color=%2334c759" alt="">
+          <span>Prioritas request lebih stabil</span>
+        </div>
+        <div>
+          <img src="https://api.iconify.design/solar:check-circle-bold.svg?color=%2334c759" alt="">
+          <span>History chat lebih panjang</span>
+        </div>
+      </div>
+
+      <button onclick="selectPlan('Plus')">Upgrade ke Plus</button>
+    </div>
+
+    <div class="card plan-card">
+      <div class="plan-badge">Power user</div>
+      <h3>Premium</h3>
+      <div class="plan-price">
+        <b>Rp799K</b>
+        <span>/bulan</span>
+      </div>
+      <p>Untuk penggunaan serius, integrasi aplikasi, dan kebutuhan request tinggi.</p>
+
+      <div class="plan-list">
+        <div>
+          <img src="https://api.iconify.design/solar:check-circle-bold.svg?color=%2334c759" alt="">
+          <span>10.000 request per hari</span>
+        </div>
+        <div>
+          <img src="https://api.iconify.design/solar:check-circle-bold.svg?color=%2334c759" alt="">
+          <span>Dukungan endpoint prioritas</span>
+        </div>
+        <div>
+          <img src="https://api.iconify.design/solar:check-circle-bold.svg?color=%2334c759" alt="">
+          <span>Cocok untuk aplikasi produksi</span>
+        </div>
+      </div>
+
+      <button onclick="selectPlan('Premium')">Upgrade ke Premium</button>
+    </div>
+  </div>
+</section>
+
 <section class="page" id="about">
   <h2 class="title">About</h2>
 
@@ -933,6 +1171,49 @@ print(data.get("content", data))</pre>
   </div>
 </div>
 
+<div class="modal hidden" id="paymentModal" onclick="closePaymentModal(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-top">
+      <div>
+        <h2 class="modal-title">Pembayaran QRIS</h2>
+        <p class="modal-subtitle">Scan QRIS untuk mengaktifkan paket yang dipilih.</p>
+      </div>
+      <button class="close-btn" onclick="closePaymentModal()" aria-label="Tutup">&times;</button>
+    </div>
+
+    <div class="payment-summary">
+      <div class="payment-row">
+        <span>Paket</span>
+        <b id="paymentPlanName">-</b>
+      </div>
+      <div class="payment-row">
+        <span>Total</span>
+        <b id="paymentAmount">-</b>
+      </div>
+      <div class="payment-row">
+        <span>NMID</span>
+        <b id="paymentNmid">ID1026514647324</b>
+      </div>
+      <div class="payment-row">
+        <span>Invoice</span>
+        <b id="paymentInvoice">-</b>
+      </div>
+    </div>
+
+    <div id="paymentMessage" class="auth-message hidden"></div>
+
+    <div class="payment-qr" id="paymentQrBox">
+      <canvas id="paymentQrCanvas"></canvas>
+    </div>
+
+    <button onclick="createQrisPayment()">Buat QRIS Baru</button>
+    <p class="payment-note">
+      QRIS berlaku sekitar 30 menit setelah dibuat. Pastikan nama merchant sesuai sebelum membayar.
+    </p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
@@ -963,6 +1244,14 @@ const firebaseConfig = {
 
 const CREATE_USER_API = "https://api-save-520643585460.us-central1.run.app";
 const CHAT_API = "https://api-mzmdqh3n6a-uc.a.run.app/chat";
+const QRIS_API = "https://qris.interactive.co.id/restapi/qris/show_qris.php";
+const QRIS_NMID = "ID1026514647324";
+const QRIS_API_KEY = "";
+const QRIS_MID = "";
+const PLAN_PRICES = {
+  Plus: 299000,
+  Premium: 799000
+};
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -971,6 +1260,8 @@ const db = getFirestore(app);
 let currentApiKey = "";
 let authMode = "login";
 let chatHistory = [];
+let selectedPaymentPlan = "";
+let selectedPaymentInvoice = "";
 
 window.toggleMenu = function(){
   document.getElementById("menu").classList.toggle("active");
@@ -1079,6 +1370,7 @@ window.closeAuthModal = function(event){
 document.addEventListener("keydown", (event) => {
   if(event.key === "Escape"){
     closeAuthModal();
+    closePaymentModal();
   }
 });
 
@@ -1187,6 +1479,112 @@ window.copyApiKey = async function(){
 
   await navigator.clipboard.writeText(currentApiKey);
   alert("API key disalin.");
+};
+
+window.selectPlan = function(planName){
+  if(!auth.currentUser){
+    openAuthModal("login");
+    showAuthMessage("Login dulu untuk upgrade ke paket " + planName + ".");
+    return;
+  }
+
+  selectedPaymentPlan = planName;
+  selectedPaymentInvoice = "PUTRA-" + planName.toUpperCase() + "-" + Date.now();
+
+  document.getElementById("paymentPlanName").innerText = planName;
+  document.getElementById("paymentAmount").innerText = formatRupiah(PLAN_PRICES[planName] || 0);
+  document.getElementById("paymentNmid").innerText = QRIS_NMID;
+  document.getElementById("paymentInvoice").innerText = selectedPaymentInvoice;
+  document.getElementById("paymentModal").classList.remove("hidden");
+
+  clearPaymentMessage();
+  clearPaymentQr();
+  createQrisPayment();
+};
+
+window.closePaymentModal = function(event){
+  if(event && event.target !== document.getElementById("paymentModal")) return;
+  document.getElementById("paymentModal").classList.add("hidden");
+};
+
+function formatRupiah(value){
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0
+  }).format(value);
+}
+
+function showPaymentMessage(message, type = "error"){
+  const messageBox = document.getElementById("paymentMessage");
+  messageBox.innerText = message;
+  messageBox.className = "auth-message " + type;
+}
+
+function clearPaymentMessage(){
+  const messageBox = document.getElementById("paymentMessage");
+  messageBox.innerText = "";
+  messageBox.className = "auth-message hidden";
+}
+
+function clearPaymentQr(){
+  const canvas = document.getElementById("paymentQrCanvas");
+  const context = canvas.getContext("2d");
+  context.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+window.createQrisPayment = async function(){
+  const amount = PLAN_PRICES[selectedPaymentPlan] || 0;
+
+  if(!selectedPaymentPlan || !amount){
+    showPaymentMessage("Pilih paket upgrade terlebih dahulu.");
+    return;
+  }
+
+  if(!QRIS_API_KEY || !QRIS_MID){
+    showPaymentMessage("Isi QRIS_API_KEY dan QRIS_MID dari InterActive QRIS dulu agar invoice bisa dibuat.");
+    return;
+  }
+
+  clearPaymentMessage();
+  showPaymentMessage("Membuat invoice QRIS...", "success");
+
+  try{
+    const url = new URL(QRIS_API);
+    url.searchParams.set("do", "create-invoice");
+    url.searchParams.set("apikey", QRIS_API_KEY);
+    url.searchParams.set("mID", QRIS_MID);
+    url.searchParams.set("cliTrxNumber", selectedPaymentInvoice);
+    url.searchParams.set("cliTrxAmount", amount);
+    url.searchParams.set("useTip", "no");
+
+    const response = await fetch(url.toString());
+    const data = await response.json();
+
+    if(data.status !== "success" || !data.data?.qris_content){
+      throw new Error(data.data?.qris_status || "Gagal membuat QRIS.");
+    }
+
+    document.getElementById("paymentInvoice").innerText = data.data.qris_invoiceid || selectedPaymentInvoice;
+    document.getElementById("paymentNmid").innerText = data.data.qris_nmid || QRIS_NMID;
+
+    await QRCode.toCanvas(
+      document.getElementById("paymentQrCanvas"),
+      data.data.qris_content,
+      {
+        width: 220,
+        margin: 2,
+        color: {
+          dark: "#101828",
+          light: "#ffffff"
+        }
+      }
+    );
+
+    showPaymentMessage("QRIS berhasil dibuat. Silakan scan untuk membayar.", "success");
+  }catch(err){
+    showPaymentMessage(err.message || "Gagal membuat pembayaran QRIS.");
+  }
 };
 
 function addChatMessage(message, type = "ai"){
