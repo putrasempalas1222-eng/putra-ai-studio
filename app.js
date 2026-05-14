@@ -32,7 +32,7 @@ const firebaseConfig = {
   measurementId: "G-6GX7G5JDN2"
 };
 
-const CREATE_USER_API = "https://api-save-520643585460.us-central1.run.app";
+const CREATE_USER_API = "https://data-save-api-520643585460.us-central1.run.app";
 const CHAT_API = "https://api-mzmdqh3n6a-uc.a.run.app/chat";
 const REVIEW_API = "https://api-mzmdqh3n6a-uc.a.run.app/review";
 const QRIS_API = "https://qris.interactive.co.id/restapi/qris/show_qris.php";
