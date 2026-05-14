@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Putra API Dashboard</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,Arial,sans-serif}
+
+:root{
+  --bg:#080b10;
+  --surface:#111722;
+  --surface-soft:#161d2a;
+  --line:#293241;
+  --line-soft:rgba(255,255,255,.08);
+  --text:#f5f7fb;
+  --muted:#a7b1c2;
+  --blue:#7bb7ff;
+  --cyan:#62d6e8;
+  --green:#70e0a3;
+  --rose:#f87171;
+}
+
+html{scroll-behavior:smooth}
+body{
+  min-height:100vh;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 22% 8%,rgba(123,183,255,.28),transparent 34%),
+    radial-gradient(circle at 86% 16%,rgba(112,224,163,.16),transparent 28%),
+    linear-gradient(135deg,#05070b 0%,#0b111c 46%,#091016 100%);
+}
+
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+  background-size:54px 54px;
+  mask-image:linear-gradient(to bottom,rgba(0,0,0,.72),transparent 78%);
+}
+
+nav{
+  width:min(1180px,calc(100% - 32px));
+  margin:16px auto 0;
+  padding:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:sticky;
+  top:16px;
+  z-index:99;
+  border:1px solid var(--line-soft);
+  border-radius:22px;
+  background:rgba(10,15,23,.72);
+  backdrop-filter:blur(22px);
+  box-shadow:0 18px 60px rgba(0,0,0,.28);
+}
+
+.logo{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:18px;
+  font-weight:900;
+  letter-spacing:.2px;
+}
+
+.logo img{
+  width:32px;
+  height:32px;
+  border-radius:12px;
+  padding:6px;
+  background:conic-gradient(from 180deg,var(--blue),var(--green),var(--cyan),var(--blue));
+  box-shadow:0 0 36px rgba(123,183,255,.34);
+}
+
+.menu{display:flex;gap:6px;align-items:center}
+.menu a{
+  color:var(--muted);
+  text-decoration:none;
+  font-size:14px;
+  font-weight:700;
+  padding:10px 12px;
+  border-radius:12px;
+}
+.menu a:hover{background:rgba(255,255,255,.06);color:white}
+
+.mobile-btn{display:none;font-size:26px;cursor:pointer;color:var(--text)}
+.nav-auth{display:flex;gap:8px;align-items:center}
+
+section{width:min(1180px,calc(100% - 32px));margin:0 auto;padding:56px 0}
+
+.hero{
+  display:grid;
+  grid-template-columns:minmax(0,1.08fr) minmax(360px,.92fr);
+  gap:28px;
+  align-items:stretch;
+  min-height:calc(100vh - 118px);
+  padding-top:44px;
+}
+
+.hero-copy{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  min-width:0;
+}
+
+.eyebrow{
+  width:max-content;
+  max-width:100%;
+  color:#d7ecff;
+  background:rgba(123,183,255,.12);
+  border:1px solid rgba(123,183,255,.22);
+  border-radius:999px;
+  padding:8px 12px;
+  font-size:13px;
+  font-weight:850;
+  margin-bottom:18px;
+}
+
+.hero h1{
+  max-width:780px;
+  font-size:clamp(42px,6vw,76px);
+  line-height:.98;
+  letter-spacing:0;
+  margin-bottom:22px;
+}
+
+.hero p{
+  max-width:640px;
+  color:#c7d2e3;
+  font-size:17px;
+  line-height:1.75;
+}
+
+.hero-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-top:28px;
+}
+
+.studio-card{
+  position:relative;
+  overflow:hidden;
+  align-self:center;
+  min-height:520px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+.studio-card:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(circle at 72% 12%,rgba(98,214,232,.2),transparent 30%),
+    linear-gradient(135deg,rgba(255,255,255,.08),transparent 36%);
+  pointer-events:none;
+}
+
+.studio-card>*{position:relative}
+
+.panel-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:20px;
+}
+
+.panel-kicker{
+  color:var(--muted);
+  font-size:13px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+.status-dot{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  color:#c8f7dd;
+  font-size:13px;
+  font-weight:800;
+}
+
+.status-dot:before{
+  content:"";
+  width:8px;
+  height:8px;
+  border-radius:999px;
+  background:var(--green);
+  box-shadow:0 0 18px var(--green);
+}
+
+.card{
+  background:linear-gradient(180deg,rgba(22,29,42,.86),rgba(13,18,27,.9));
+  border:1px solid var(--line-soft);
+  border-radius:24px;
+  padding:24px;
+  box-shadow:0 24px 80px rgba(0,0,0,.28);
+  backdrop-filter:blur(18px);
+}
+
+input,textarea{
+  width:100%;
+  padding:15px 16px;
+  margin-bottom:12px;
+  outline:none;
+  border-radius:16px;
+  background:rgba(5,8,13,.78);
+  color:white;
+  font-size:15px;
+  border:1px solid var(--line);
+}
+input:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(123,183,255,.12)}
+textarea{min-height:170px;resize:vertical}
+
+button{
+  width:100%;
+  padding:14px 17px;
+  border:none;
+  border-radius:15px;
+  background:linear-gradient(135deg,#58a6ff,#62d6e8);
+  color:#03111c;
+  font-size:15px;
+  font-weight:900;
+  cursor:pointer;
+  margin-top:8px;
+  transition:transform .18s ease,filter .18s ease,border-color .18s ease;
+}
+button:hover{transform:translateY(-1px);filter:brightness(1.06)}
+button:disabled{opacity:.62;cursor:not-allowed;transform:none}
+
+.nav-auth button,.auth-actions button,.hero-actions button{
+  width:auto;
+  margin-top:0;
+  padding:11px 16px;
+}
+
+.secondary{
+  background:rgba(255,255,255,.06);
+  color:var(--text);
+  border:1px solid var(--line-soft);
+}
+.danger{background:var(--rose);color:white}
+.hidden{display:none}
+
+.metric-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin:20px 0;
+}
+
+.metric{
+  background:rgba(5,8,13,.46);
+  border:1px solid var(--line-soft);
+  border-radius:18px;
+  padding:16px;
+}
+.metric span{display:block;color:var(--muted);font-size:12px;font-weight:800;margin-bottom:8px}
+.metric b{font-size:24px}
+
+.auth-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+
+.modal{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(3,6,12,.76);
+  backdrop-filter:blur(18px);
+  padding:20px;
+  z-index:999;
+}
+.modal.hidden{display:none}
+.modal-card{
+  width:100%;
+  max-width:440px;
+  background:linear-gradient(180deg,rgba(22,29,42,.96),rgba(8,12,18,.98));
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:28px;
+  padding:26px;
+  box-shadow:0 34px 110px rgba(0,0,0,.6);
+  animation:modalPop .22s ease;
+}
+@keyframes modalPop{from{transform:translateY(14px) scale(.97);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+.modal-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:20px}
+.modal-title{font-size:30px;line-height:1.1;margin-bottom:8px}
+.modal-subtitle{color:var(--muted);line-height:1.5;font-size:14px}
+.close-btn{
+  width:42px;
+  height:42px;
+  padding:0;
+  border-radius:50%;
+  background:rgba(255,255,255,.07);
+  color:#e2e8f0;
+  font-size:24px;
+  line-height:1;
+  flex:0 0 auto;
+  margin-top:0;
+}
+.auth-tabs{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  background:rgba(5,8,13,.72);
+  border:1px solid var(--line-soft);
+  border-radius:18px;
+  padding:6px;
+  margin-bottom:16px;
+}
+.auth-tabs button{margin-top:0;border-radius:13px;background:transparent;color:var(--muted)}
+.auth-tabs button.active{background:linear-gradient(135deg,#58a6ff,#62d6e8);color:#03111c}
+.auth-message{
+  background:rgba(5,8,13,.78);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px;
+  margin-bottom:12px;
+  color:#cbd5e1;
+  font-size:14px;
+}
+.auth-message.error{color:#fecaca;border-color:rgba(248,113,113,.7)}
+.auth-message.success{color:#bbf7d0;border-color:rgba(112,224,163,.7)}
+.auth-footer{text-align:center;color:var(--muted);font-size:14px;margin-top:16px}
+.auth-footer span{color:var(--cyan);font-weight:900;cursor:pointer}
+
+.api-box,pre{
+  background:rgba(3,6,12,.76);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:16px;
+  margin-top:12px;
+  color:#dce9f8;
+  overflow:auto;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.feature h3{color:#dff4ff;margin-bottom:10px}
+.feature p,.doc p{color:#cbd5e1;line-height:1.65}
+.title{font-size:34px;margin-bottom:22px;letter-spacing:0}
+.doc h3{margin-top:25px;margin-bottom:10px;color:var(--cyan)}
+
+footer{
+  width:min(1180px,calc(100% - 32px));
+  margin:0 auto 20px;
+  text-align:center;
+  padding:25px;
+  color:var(--muted);
+}
+
+@media(max-width:900px){
+  nav{top:10px;width:calc(100% - 20px);margin-top:10px}
+  section{width:calc(100% - 24px);padding:38px 0}
+  .hero{grid-template-columns:1fr;min-height:auto;padding-top:30px}
+  .hero h1{font-size:42px}
+  .studio-card{min-height:auto}
+  .grid{grid-template-columns:1fr}
+  .metric-row{grid-template-columns:1fr}
+  .menu{
+    display:none;
+    position:absolute;
+    top:68px;
+    right:0;
+    left:0;
+    background:rgba(10,15,23,.96);
+    padding:12px;
+    border-radius:18px;
+    flex-direction:column;
+    align-items:stretch;
+    border:1px solid var(--line-soft);
+  }
+  .menu.active{display:flex}
+  .mobile-btn{display:block}
+  .nav-auth{display:none}
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+  <div class="logo">
+    <img src="https://api.iconify.design/solar:stars-bold.svg?color=%23ffffff" alt="Putra AI Studio Logo">
+    PUTRA AI STUDIO
+  </div>
+
+  <div class="mobile-btn" onclick="toggleMenu()">&#9776;</div>
+
+  <div class="menu" id="menu">
+    <a href="#home">Home</a>
+    <a href="#dashboard">Dashboard</a>
+    <a href="#fitur">Fitur</a>
+    <a href="#docs">Dokumentasi</a>
+  </div>
+
+  <div class="nav-auth" id="navAuth">
+    <button class="secondary" onclick="openAuthModal('login')">Login</button>
+    <button onclick="openAuthModal('register')">Register</button>
+  </div>
+
+  <div class="nav-auth hidden" id="navUser">
+    <button class="danger" onclick="logoutUser()">Logout</button>
+  </div>
+</nav>
+
+<section class="hero" id="home">
+  <div class="hero-copy">
+    <div class="eyebrow">Putra AI Studio</div>
+    <h1>Bangun akses AI kamu dari satu studio.</h1>
+    <p>
+      Kelola akun, buat API key, dan test endpoint AI dalam tampilan dashboard
+      yang bersih, cepat, dan siap dipakai untuk project kamu.
+    </p>
+    <div class="hero-actions" id="heroAuth">
+      <button onclick="openAuthModal('register')">Mulai Register</button>
+      <button class="secondary" onclick="openAuthModal('login')">Login</button>
+    </div>
+  </div>
+
+  <div class="card studio-card">
+    <div>
+      <div class="panel-head">
+        <div>
+          <div class="panel-kicker">AI Access Console</div>
+          <h2>Akun API</h2>
+        </div>
+        <div class="status-dot">Online</div>
+      </div>
+
+      <div id="authBox">
+        <p style="color:#cbd5e1;line-height:1.7;margin-top:10px;">
+          Login atau register lewat pop-up untuk mendapatkan API key kamu.
+        </p>
+
+        <div class="metric-row">
+          <div class="metric">
+            <span>Daily limit</span>
+            <b>100</b>
+          </div>
+          <div class="metric">
+            <span>Status</span>
+            <b>Ready</b>
+          </div>
+        </div>
+
+        <div class="auth-actions">
+          <button onclick="openAuthModal('login')">Login</button>
+          <button class="secondary" onclick="openAuthModal('register')">Register</button>
+        </div>
+      </div>
+
+      <div id="dashboardBox" class="hidden">
+        <p style="color:#cbd5e1;">Login sebagai: <b id="userEmail"></b></p>
+
+        <div class="metric-row">
+          <div class="metric">
+            <span>Daily limit</span>
+            <b id="limitBox">100</b>
+          </div>
+          <div class="metric">
+            <span>API status</span>
+            <b>Aktif</b>
+          </div>
+        </div>
+
+        <h3 style="margin-top:18px;">API Key Kamu</h3>
+
+        <div class="api-box" id="apiKeyBox">Loading...</div>
+
+        <button onclick="copyApiKey()">Copy API Key</button>
+        <button class="danger" onclick="logoutUser()">Logout</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="fitur">
+  <h2 class="title">Fitur</h2>
+
+  <div class="grid">
+    <div class="card feature">
+      <h3>Login User</h3>
+      <p>User bisa daftar dan login menggunakan email dan password.</p>
+    </div>
+
+    <div class="card feature">
+      <h3>API Key Otomatis</h3>
+      <p>Setiap user mendapatkan API key unik setelah daftar.</p>
+    </div>
+
+    <div class="card feature">
+      <h3>Limit Request</h3>
+      <p>API key bisa dibatasi jumlah request per hari melalui Firebase Function.</p>
+    </div>
+  </div>
+</section>
+
+<section id="dashboard">
+  <h2 class="title">Test API</h2>
+
+  <div class="card">
+    <textarea id="testPrompt" placeholder="Tulis pesan untuk AI..."></textarea>
+    <button onclick="testApi()">Kirim Test API</button>
+    <pre id="testResult">Hasil akan muncul di sini...</pre>
+  </div>
+</section>
+
+<section id="docs" class="doc">
+  <h2 class="title">Dokumentasi API</h2>
+
+  <div class="card">
+    <h3>Endpoint</h3>
+    <pre>POST https://api-mzmdqh3n6a-uc.a.run.app/chat</pre>
+
+    <h3>Headers</h3>
+    <pre>{
+  "Content-Type": "application/json",
+  "x-api-key": "API_KEY_KAMU"
+}</pre>
+
+    <h3>Body</h3>
+    <pre>{
+  "prompt": "Halo AI"
+}</pre>
+
+    <h3>Contoh JavaScript</h3>
+    <pre>const response = await fetch("https://api-mzmdqh3n6a-uc.a.run.app/chat", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": "API_KEY_KAMU"
+  },
+  body: JSON.stringify({
+    prompt: "Halo AI"
+  })
+});
+
+const data = await response.json();
+console.log(data.content);</pre>
+
+    <h3>Response Sukses</h3>
+    <pre>{
+  "success": true,
+  "content": "Hello! How can I help you?",
+  "limit": 100,
+  "used": 1,
+  "remain": 19
+}</pre>
+  </div>
+</section>
+
+<footer>
+  &copy; 2026 PUTRA AI STUDIO
+</footer>
+
+<div class="modal hidden" id="authModal" onclick="closeAuthModal(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-top">
+      <div>
+        <h2 class="modal-title" id="authTitle">Login</h2>
+        <p class="modal-subtitle" id="authSubtitle">Masuk untuk melihat API key kamu.</p>
+      </div>
+      <button class="close-btn" onclick="closeAuthModal()" aria-label="Tutup">&times;</button>
+    </div>
+
+    <div class="auth-tabs">
+      <button id="loginTab" class="active" onclick="setAuthMode('login')">Login</button>
+      <button id="registerTab" onclick="setAuthMode('register')">Register</button>
+    </div>
+
+    <div id="authMessage" class="auth-message hidden"></div>
+
+    <input id="email" type="email" placeholder="Email" autocomplete="email">
+    <input id="password" type="password" placeholder="Password minimal 6 karakter" autocomplete="current-password">
+
+    <button id="authSubmitBtn" onclick="submitAuth()">Login</button>
+
+    <div class="auth-footer" id="authFooter">
+      Belum punya akun? <span onclick="setAuthMode('register')">Register sekarang</span>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCMdkeIeIQToOSwO6zRj04rbAvZaI2A5KE",
+  authDomain: "play-integrity-2adpr7x4a8xhyex.firebaseapp.com",
+  databaseURL: "https://play-integrity-2adpr7x4a8xhyex-default-rtdb.firebaseio.com",
+  projectId: "play-integrity-2adpr7x4a8xhyex",
+  storageBucket: "play-integrity-2adpr7x4a8xhyex.firebasestorage.app",
+  messagingSenderId: "520643585460",
+  appId: "1:520643585460:web:e86caf42b27344a2df3ee1",
+  measurementId: "G-6GX7G5JDN2"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentApiKey = "";
+let authMode = "login";
+
+window.toggleMenu = function(){
+  document.getElementById("menu").classList.toggle("active");
+};
+
+function showAuthMessage(message, type = "error"){
+  const messageBox = document.getElementById("authMessage");
+  messageBox.innerText = message;
+  messageBox.className = "auth-message " + type;
+}
+
+function clearAuthMessage(){
+  const messageBox = document.getElementById("authMessage");
+  messageBox.innerText = "";
+  messageBox.className = "auth-message hidden";
+}
+
+function setAuthLoading(isLoading){
+  const submitBtn = document.getElementById("authSubmitBtn");
+  submitBtn.disabled = isLoading;
+  submitBtn.innerText = isLoading ? "Memproses..." : (authMode === "login" ? "Login" : "Buat Akun");
+}
+
+function getAuthInput(){
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if(!email || !password){
+    showAuthMessage("Email dan password wajib diisi.");
+    return null;
+  }
+
+  if(password.length < 6){
+    showAuthMessage("Password minimal 6 karakter.");
+    return null;
+  }
+
+  return { email, password };
+}
+
+function getAuthErrorMessage(error){
+  const code = error.code || "";
+  if(code.includes("auth/invalid-email")) return "Format email tidak valid.";
+  if(code.includes("auth/email-already-in-use")) return "Email sudah terdaftar. Silakan login.";
+  if(code.includes("auth/invalid-credential")) return "Email atau password salah.";
+  if(code.includes("auth/wrong-password")) return "Password salah.";
+  if(code.includes("auth/weak-password")) return "Password minimal 6 karakter.";
+  return error.message || "Terjadi kesalahan.";
+}
+
+window.setAuthMode = function(mode){
+  authMode = mode;
+  clearAuthMessage();
+
+  document.getElementById("loginTab").classList.toggle("active", mode === "login");
+  document.getElementById("registerTab").classList.toggle("active", mode === "register");
+  document.getElementById("authTitle").innerText = mode === "login" ? "Login" : "Register";
+  document.getElementById("authSubtitle").innerText = mode === "login"
+    ? "Masuk untuk melihat API key kamu."
+    : "Buat akun baru dan dapatkan API key otomatis.";
+  document.getElementById("password").setAttribute("autocomplete", mode === "login" ? "current-password" : "new-password");
+  document.getElementById("authSubmitBtn").innerText = mode === "login" ? "Login" : "Buat Akun";
+  document.getElementById("authFooter").innerHTML = mode === "login"
+    ? "Belum punya akun? <span onclick=\"setAuthMode('register')\">Register sekarang</span>"
+    : "Sudah punya akun? <span onclick=\"setAuthMode('login')\">Login sekarang</span>";
+};
+
+window.openAuthModal = function(mode = "login"){
+  if(auth.currentUser) return;
+  setAuthMode(mode);
+  document.getElementById("authModal").classList.remove("hidden");
+  setTimeout(() => document.getElementById("email").focus(), 50);
+};
+
+window.closeAuthModal = function(event){
+  if(event && event.target !== document.getElementById("authModal")) return;
+  document.getElementById("authModal").classList.add("hidden");
+};
+
+document.addEventListener("keydown", (event) => {
+  if(event.key === "Escape"){
+    closeAuthModal();
+  }
+});
+
+function generateApiKey(){
+  const random = crypto.randomUUID().replaceAll("-", "");
+  return "pk_live_" + random;
+}
+
+async function saveApiKey(user, apiKey){
+  const limit = 100;
+
+  await setDoc(doc(db, "users", user.uid), {
+    uid: user.uid,
+    email: user.email,
+    apiKey: apiKey,
+    limit: limit,
+    active: true,
+    createdAt: Date.now()
+  });
+
+  await setDoc(doc(db, "api_keys", apiKey), {
+    uid: user.uid,
+    email: user.email,
+    limit: limit,
+    active: true,
+    createdAt: Date.now()
+  });
+}
+
+window.registerUser = async function(){
+  const input = getAuthInput();
+  if(!input) return;
+
+  try{
+    setAuthLoading(true);
+
+    const userCred = await createUserWithEmailAndPassword(auth, input.email, input.password);
+    const user = userCred.user;
+
+    const apiKey = generateApiKey();
+
+    await saveApiKey(user, apiKey);
+
+    showAuthMessage("Akun berhasil dibuat.", "success");
+    closeAuthModal();
+  }catch(err){
+    showAuthMessage(getAuthErrorMessage(err));
+  }finally{
+    setAuthLoading(false);
+  }
+};
+
+window.loginUser = async function(){
+  const input = getAuthInput();
+  if(!input) return;
+
+  try{
+    setAuthLoading(true);
+    await signInWithEmailAndPassword(auth, input.email, input.password);
+    closeAuthModal();
+  }catch(err){
+    showAuthMessage(getAuthErrorMessage(err));
+  }finally{
+    setAuthLoading(false);
+  }
+};
+
+window.submitAuth = async function(){
+  if(authMode === "register"){
+    await registerUser();
+    return;
+  }
+
+  await loginUser();
+};
+
+window.logoutUser = async function(){
+  await signOut(auth);
+};
+
+window.copyApiKey = async function(){
+  await navigator.clipboard.writeText(currentApiKey);
+  alert("API key disalin.");
+};
+
+async function loadUserData(user){
+  const userRef = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userRef);
+
+  if(!userSnap.exists()){
+    const apiKey = generateApiKey();
+    await saveApiKey(user, apiKey);
+    return loadUserData(user);
+  }
+
+  const data = userSnap.data();
+
+  currentApiKey = data.apiKey;
+
+  document.getElementById("userEmail").innerText = user.email;
+  document.getElementById("apiKeyBox").innerText = data.apiKey;
+  document.getElementById("limitBox").innerText = data.limit || 100;
+}
+
+window.testApi = async function(){
+  const prompt = document.getElementById("testPrompt").value;
+  const result = document.getElementById("testResult");
+
+  if(!currentApiKey){
+    alert("Login dulu.");
+    return;
+  }
+
+  if(!prompt){
+    alert("Isi prompt dulu.");
+    return;
+  }
+
+  result.innerText = "Loading...";
+
+  try{
+    const response = await fetch("https://api-mzmdqh3n6a-uc.a.run.app/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": currentApiKey
+      },
+      body: JSON.stringify({
+        prompt: prompt
+      })
+    });
+
+    const data = await response.json();
+
+    if(data.content){
+      result.innerText = data.content + "\n\nSisa request: " + data.remain;
+    }else{
+      result.innerText = JSON.stringify(data, null, 2);
+    }
+  }catch(err){
+    result.innerText = err.message;
+  }
+};
+
+onAuthStateChanged(auth, async (user) => {
+  if(user){
+    document.getElementById("authBox").classList.add("hidden");
+    document.getElementById("dashboardBox").classList.remove("hidden");
+    document.getElementById("navAuth").classList.add("hidden");
+    document.getElementById("navUser").classList.remove("hidden");
+    document.getElementById("heroAuth").classList.add("hidden");
+    closeAuthModal();
+
+    await loadUserData(user);
+  }else{
+    currentApiKey = "";
+
+    document.getElementById("authBox").classList.remove("hidden");
+    document.getElementById("dashboardBox").classList.add("hidden");
+    document.getElementById("navAuth").classList.remove("hidden");
+    document.getElementById("navUser").classList.add("hidden");
+    document.getElementById("heroAuth").classList.remove("hidden");
+  }
+});
+</script>
+
+</body>
+</html>
