@@ -17,8 +17,8 @@ const firebaseConfig = {
   measurementId: "G-6GX7G5JDN2",
 };
 
-const CREATE_USER_API = "https://data-save-api-520643585460.us-central1.run.app";
-const CHAT_API = "https://api-mzmdqh3n6a-uc.a.run.app/chat";
+const CREATE_USER_API = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/auth/create-profile";
+const CHAT_API = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/chat";
 const REVIEW_API = "https://api-mzmdqh3n6a-uc.a.run.app/review";
 const BAN_CHECK_API = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/auth/check-ban";
 const QRIS_API = "https://qris.interactive.co.id/restapi/qris/show_qris.php";
@@ -32,10 +32,17 @@ const PLAN_PRICES = {
 
 const app = initializeApp(firebaseConfig);
 
-initializeAppCheck(app, {
-  provider: new ReCaptchaV3Provider("6LdMRuosAAAAAOtJIpsCv1bhG5LYHAQH2Gj2nk0a"),
-  isTokenAutoRefreshEnabled: true,
-});
+const isLocalDevelopment =
+  location.hostname === "localhost" ||
+  location.hostname === "127.0.0.1" ||
+  location.origin === "null";
+
+if (!isLocalDevelopment) {
+  initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider("6LdMRuosAAAAAOtJIpsCv1bhG5LYHAQH2Gj2nk0a"),
+    isTokenAutoRefreshEnabled: true,
+  });
+}
 
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -45,11 +52,17 @@ let authMode = "login";
 let chatHistory = [];
 let selectedPaymentPlan = "";
 let selectedPaymentInvoice = "";
-let currentUsageLimit = 100;
+let currentUsageLimit = 50;
 let currentUsageUsed = 0;
+let currentImageRequestLimit = 2;
+let currentImageRequestUsed = 0;
+let currentGeneratedImageLimit = 2;
+let currentGeneratedImageUsed = 0;
 let reviewRating = 0;
 let reviewTimer = null;
 let isShowingBanModal = false;
+let chatImageBase64 = "";
+let chatImageDataUrl = "";
 const REVIEW_DELAY = 60000;
 const REVIEW_RETRY_DELAY = 60000;
 
@@ -121,6 +134,29 @@ window.openVerificationHelp = function () {
   openAuthModal("login");
   showAuthMessage("Belum menerima email verifikasi? Cek Inbox, Spam, atau Promosi.", "success");
   showVerifyPanel();
+};
+
+window.showDocFeature = function (feature) {
+  document.querySelectorAll(".docs-nav button").forEach((button) => {
+    button.classList.toggle("active", button.dataset.doc === feature);
+  });
+
+  document.querySelectorAll(".doc-panel").forEach((panel) => {
+    panel.classList.toggle("active", panel.id === "doc-" + feature);
+  });
+};
+
+window.showDocLanguage = function (feature, language) {
+  const panel = document.getElementById("doc-" + feature);
+  panel.querySelectorAll(".lang-tabs button").forEach((button) => {
+    button.classList.toggle("active", button.dataset.lang === language);
+  });
+  panel.querySelectorAll(".lang-code").forEach((code) => {
+    code.classList.toggle(
+      "active",
+      code.dataset.feature === feature && code.dataset.lang === language
+    );
+  });
 };
 
 function setAuthLoading(isLoading) {
@@ -233,7 +269,7 @@ async function createUserProfileInBackend(user) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": currentApiKey,
+      Authorization: "Bearer " + token,
       "x-device-id": deviceId,
     },
   });
@@ -616,7 +652,22 @@ function addChatMessage(message, type = "ai", options = {}) {
   const bubble = document.createElement("div");
 
   bubble.className = "chat-bubble " + type;
-  bubble.innerText = message;
+  bubble.classList.toggle("has-image", Boolean(options.imageUrl));
+
+  if (options.imageUrl) {
+    const image = document.createElement("img");
+    image.className = "chat-uploaded-image";
+    image.src = options.imageUrl;
+    image.alt = "Gambar yang dikirim";
+    bubble.appendChild(image);
+  }
+
+  if (message) {
+    const text = document.createElement("div");
+    text.className = "chat-text";
+    text.innerText = message;
+    bubble.appendChild(text);
+  }
 
   chatMessages.appendChild(bubble);
   chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -636,8 +687,30 @@ function addSpeakButton(bubble, text) {
   bubble.appendChild(speakButton);
 }
 
-function updateAiBubble(bubble, message, canSpeak = true) {
+function updateAiBubble(bubble, message, canSpeak = true, imageUrl = "") {
   bubble.innerHTML = "";
+  bubble.classList.toggle("has-image", Boolean(imageUrl));
+
+  if (imageUrl) {
+    const imageWrap = document.createElement("div");
+    imageWrap.className = "chat-generated-image-wrap";
+
+    const image = document.createElement("img");
+    image.className = "chat-generated-image";
+    image.src = imageUrl;
+    image.alt = "Gambar hasil AI";
+
+    const downloadButton = document.createElement("a");
+    downloadButton.className = "download-image-btn";
+    downloadButton.href = imageUrl;
+    downloadButton.download = "putra-ai-image.png";
+    downloadButton.innerText = "Download";
+
+    imageWrap.appendChild(image);
+    imageWrap.appendChild(downloadButton);
+    bubble.appendChild(imageWrap);
+  }
+
   renderAiContent(bubble, message);
 
   if (canSpeak) {
@@ -648,10 +721,35 @@ function updateAiBubble(bubble, message, canSpeak = true) {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-function setAiLoadingState(bubble) {
+function wantsGeneratedImagePrompt(text) {
+  const clean = String(text || "").toLowerCase();
+  const hasImageWord = /\b(gambar|image)\b/.test(clean);
+  const hasCreateIntent =
+    /\b(buat|buatkan|bikin|generate|create|gambarkan)\b/.test(clean);
+
+  return hasImageWord && hasCreateIntent;
+}
+
+function wantsEditedImagePrompt(text) {
+  const clean = String(text || "").toLowerCase();
+  return /\b(edit|ubah|ganti|tambahkan|tambah|hapus|hilangkan|jadikan|bikin jadi|buat jadi|replace|remove|add)\b/.test(
+    clean
+  );
+}
+
+function setAiLoadingState(bubble, mode = "text") {
+  const label =
+    mode === "image-editing"
+      ? "PUTRA AI sedang mengedit gambar"
+      : mode === "image-analysis"
+      ? "PUTRA AI sedang menganalisis gambar"
+      : mode === "image-generation"
+        ? "PUTRA AI sedang menggambar"
+        : "PUTRA AI sedang mengetik";
+
   bubble.classList.add("typing");
   bubble.innerHTML = `
-    <span>PUTRA AI sedang mengetik</span>
+    <span>${label}</span>
     <span class="typing-dots" aria-hidden="true">
       <i></i><i></i><i></i>
     </span>
@@ -661,12 +759,16 @@ function setAiLoadingState(bubble) {
 function setChatSendingState(isSending) {
   const sendButton = document.getElementById("sendChatBtn");
   const promptInput = document.getElementById("testPrompt");
+  const imageInput = document.getElementById("chatImageInput");
+  const uploadButton = document.querySelector(".upload-chat-btn");
   sendButton.disabled = isSending;
   sendButton.classList.toggle("loading", isSending);
   promptInput.disabled = isSending;
+  imageInput.disabled = isSending;
+  uploadButton.disabled = isSending;
 }
 
-async function typeAiBubble(bubble, message, canSpeak = true) {
+async function typeAiBubble(bubble, message, canSpeak = true, imageUrl = "") {
   bubble.classList.remove("typing");
   bubble.innerHTML = "";
 
@@ -685,7 +787,7 @@ async function typeAiBubble(bubble, message, canSpeak = true) {
     await new Promise((resolve) => setTimeout(resolve, delay));
   }
 
-  updateAiBubble(bubble, text, canSpeak);
+  updateAiBubble(bubble, text, canSpeak, imageUrl);
 }
 
 function renderAiContent(container, message) {
@@ -853,8 +955,9 @@ async function waitForUserProfile(user, maxTry = 10) {
 async function loadUserData(user) {
   document.getElementById("userEmail").innerText = user.email;
   document.getElementById("apiKeyBox").innerText = "Memuat API key...";
-  document.getElementById("limitBox").innerText = "100";
-  updateUsagePanel(0, 100);
+  document.getElementById("limitBox").innerText = "50";
+  updateUsagePanel(0, 50);
+  updateImageUsagePanel(0, 2, 0, 2);
 
   let data = await waitForUserProfile(user);
 
@@ -874,7 +977,7 @@ async function loadUserData(user) {
   }
 
   currentApiKey = data.apiKey || "";
-  currentUsageLimit = Number(data.limit || 100);
+  currentUsageLimit = Number(data.limit || 50);
 
   document.getElementById("apiKeyBox").innerText = currentApiKey || "API key kosong.";
   document.getElementById("limitBox").innerText = currentUsageLimit;
@@ -884,7 +987,7 @@ async function loadUserData(user) {
 
 function updateUsagePanel(used, limit) {
   used = Number(used || 0);
-  limit = Number(limit || 100);
+  limit = Number(limit || 50);
 
   const remain = Math.max(limit - used, 0);
 
@@ -908,6 +1011,57 @@ function updateUsagePanel(used, limit) {
   }
 }
 
+function updateImageUsagePanel(
+  imageUsed,
+  imageLimit,
+  generatedUsed,
+  generatedLimit
+) {
+  imageUsed = Number(imageUsed || 0);
+  imageLimit = Number(imageLimit || 2);
+  generatedUsed = Number(generatedUsed || 0);
+  generatedLimit = Number(generatedLimit || 2);
+
+  document.getElementById("imageRequestUsedBox").innerText = Number(
+    imageUsed
+  );
+  document.getElementById("imageRequestLimitBox").innerText = Number(
+    imageLimit
+  );
+  document.getElementById("generatedImageUsedBox").innerText = Number(
+    generatedUsed
+  );
+  document.getElementById("generatedImageLimitBox").innerText = Number(
+    generatedLimit
+  );
+
+  updateMiniUsageCard(
+    document.getElementById("imageRequestUsageFill"),
+    document.getElementById("imageRequestUsagePanel"),
+    imageUsed,
+    imageLimit
+  );
+
+  updateMiniUsageCard(
+    document.getElementById("generatedImageUsageFill"),
+    document.getElementById("generatedImageUsagePanel"),
+    generatedUsed,
+    generatedLimit
+  );
+}
+
+function updateMiniUsageCard(fill, card, used, limit) {
+  const percent = Math.min((used / Math.max(limit, 1)) * 100, 100);
+  fill.style.width = percent + "%";
+
+  card.classList.remove("warning", "danger");
+  if (percent >= 80) {
+    card.classList.add("danger");
+  } else if (percent >= 50) {
+    card.classList.add("warning");
+  }
+}
+
 async function loadUsageData(apiKey, limit) {
   if (!apiKey) {
     updateUsagePanel(0, limit);
@@ -915,28 +1069,52 @@ async function loadUsageData(apiKey, limit) {
   }
 
   try {
-    const today = new Date().toISOString().split("T")[0];
-    const usageId = apiKey + "_" + today;
-    const usageSnap = await getDoc(doc(db, "usage_limits", usageId));
+    const now = new Date();
+    const day = now.toISOString().split("T")[0];
+    const month =
+      now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
+    const dailyUsageId = apiKey + "_" + day;
+    const monthlyImageUsageId = apiKey + "_images_" + month;
+    const [dailyUsageSnap, monthlyImageUsageSnap] = await Promise.all([
+      getDoc(doc(db, "usage_limits", dailyUsageId)),
+      getDoc(doc(db, "usage_limits", monthlyImageUsageId)),
+    ]);
 
-    if (usageSnap.exists()) {
-      const usageData = usageSnap.data();
-      updateUsagePanel(usageData.count || 0, usageData.limit || limit);
-      return;
-    }
+    const dailyUsageData = dailyUsageSnap.exists() ? dailyUsageSnap.data() : {};
+    const monthlyImageUsageData = monthlyImageUsageSnap.exists()
+      ? monthlyImageUsageSnap.data()
+      : {};
 
-    updateUsagePanel(0, limit);
+    updateUsagePanel(dailyUsageData.count || 0, dailyUsageData.limit || limit);
+    updateImageUsagePanel(
+      monthlyImageUsageData.imageRequestCount || 0,
+      monthlyImageUsageData.imageRequestLimit || 2,
+      monthlyImageUsageData.generatedImageCount || 0,
+      monthlyImageUsageData.generatedImageLimit || 2
+    );
   } catch (err) {
     console.warn("Gagal memuat pemakaian API:", err);
     updateUsagePanel(0, limit);
+    updateImageUsagePanel(0, 2, 0, 2);
   }
 }
 
 window.testApi = async function () {
   const promptInput = document.getElementById("testPrompt");
   const prompt = promptInput.value.trim();
+  const hasImage = Boolean(chatImageBase64);
+  const requestImageBase64 = chatImageBase64;
+  const requestImageDataUrl = chatImageDataUrl;
+  const userMessage = prompt || (hasImage ? "Analisis gambar ini." : "");
+  const requestMode = hasImage
+    ? wantsEditedImagePrompt(userMessage)
+      ? "image-editing"
+      : "image-analysis"
+    : wantsGeneratedImagePrompt(userMessage)
+      ? "image-generation"
+      : "text";
 
-  if (!prompt) {
+  if (!userMessage) {
     return;
   }
 
@@ -947,10 +1125,13 @@ window.testApi = async function () {
 
   promptInput.value = "";
 
-  addChatMessage(prompt, "user");
+  addChatMessage(userMessage, "user", {
+    imageUrl: requestImageDataUrl || "",
+  });
+  removeChatImage();
 
   const loadingBubble = addChatMessage("", "ai");
-  setAiLoadingState(loadingBubble);
+  setAiLoadingState(loadingBubble, requestMode);
   setChatSendingState(true);
 
   try {
@@ -962,7 +1143,8 @@ window.testApi = async function () {
         "x-device-id": deviceId,
       },
       body: JSON.stringify({
-        prompt: prompt,
+        prompt: userMessage,
+        ...(hasImage ? { imageBase64: requestImageBase64 } : {}),
       }),
     });
 
@@ -975,7 +1157,11 @@ window.testApi = async function () {
         return;
       }
 
-      await typeAiBubble(loadingBubble, data.message || "Terjadi kesalahan.", false);
+      await typeAiBubble(
+        loadingBubble,
+        data.message || data.error || "Terjadi kesalahan.",
+        false
+      );
 
       return;
     }
@@ -984,26 +1170,71 @@ window.testApi = async function () {
     // UPDATE CHAT
     // =========================
 
-    await typeAiBubble(loadingBubble, data.content || "Tidak ada respon AI.");
+    await typeAiBubble(
+      loadingBubble,
+      data.content || "Tidak ada respon AI.",
+      true,
+      data.imageBase64 || ""
+    );
 
     // =========================
     // UPDATE USAGE PANEL
     // =========================
 
     const used = Number(data.used || 0);
-    const limit = Number(data.limit || 100);
+    const limit = Number(data.limit || 50);
 
     updateUsagePanel(used, limit);
+    updateImageUsagePanel(
+      data.imageRequestUsed || 0,
+      data.imageRequestLimit || 2,
+      data.generatedImageUsed || 0,
+      data.generatedImageLimit || 2
+    );
 
     // OPTIONAL
     currentUsageUsed = used;
     currentUsageLimit = limit;
+    currentImageRequestUsed = Number(data.imageRequestUsed || 0);
+    currentImageRequestLimit = Number(data.imageRequestLimit || 2);
+    currentGeneratedImageUsed = Number(data.generatedImageUsed || 0);
+    currentGeneratedImageLimit = Number(data.generatedImageLimit || 2);
   } catch (err) {
     await typeAiBubble(loadingBubble, err.message || "Server error.", false);
   } finally {
     setChatSendingState(false);
     promptInput.focus();
   }
+};
+
+document.getElementById("chatImageInput").addEventListener("change", (event) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    addChatMessage("File harus berupa gambar.", "error");
+    event.target.value = "";
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    chatImageDataUrl = String(reader.result || "");
+    chatImageBase64 = chatImageDataUrl;
+    document.getElementById("chatPreviewImage").src = chatImageDataUrl;
+    document.getElementById("chatImagePreview").classList.remove("hidden");
+  };
+  reader.readAsDataURL(file);
+});
+
+window.removeChatImage = function () {
+  chatImageBase64 = "";
+  chatImageDataUrl = "";
+  const imageInput = document.getElementById("chatImageInput");
+  const previewImage = document.getElementById("chatPreviewImage");
+  imageInput.value = "";
+  previewImage.src = "";
+  document.getElementById("chatImagePreview").classList.add("hidden");
 };
 
 document.getElementById("testPrompt").addEventListener("keydown", (event) => {
@@ -1048,7 +1279,11 @@ onAuthStateChanged(auth, async (user) => {
   } else {
     currentApiKey = "";
     currentUsageUsed = 0;
-    currentUsageLimit = 100;
+    currentUsageLimit = 50;
+    currentImageRequestUsed = 0;
+    currentImageRequestLimit = 2;
+    currentGeneratedImageUsed = 0;
+    currentGeneratedImageLimit = 2;
     clearTimeout(reviewTimer);
     document.getElementById("reviewModal").classList.add("hidden");
     resetChatHistory(false);
