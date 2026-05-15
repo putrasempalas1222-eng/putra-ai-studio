@@ -38,6 +38,7 @@
     <a href="#docs" data-page="docs" onclick="showPage('docs')">Dokumentasi</a>
     <a href="#upgrade" data-page="upgrade" onclick="showPage('upgrade')">Upgrade</a>
     <a href="#about" data-page="about" onclick="showPage('about')">About</a>
+    <a href="#privacy" data-page="privacy" onclick="showPage('privacy')">Kebijakan Privasi</a>
   </div>
 
   <div class="nav-auth" id="navAuth">
@@ -190,11 +191,9 @@
   <h2 class="title">Dokumentasi API</h2>
 
   <div class="card">
-    <h3>Endpoint</h3>
-    <pre>POST</pre>
 
- <h3>Link</h3>
-    <pre>https://api-mzmdqh3n6a-uc.a.run.app/chat</pre>
+    <h3>Endpoint</h3>
+    <pre>POST https://api-mzmdqh3n6a-uc.a.run.app/chat</pre>
 
     <h3>Headers</h3>
     <pre>{
@@ -202,25 +201,29 @@
   "x-api-key": "API_KEY_KAMU"
 }</pre>
 
-    <h3>Body</h3>
+    <h3>Body Request</h3>
     <pre>{
   "prompt": "Halo PUTRA AI Studio"
 }</pre>
 
     <h3>Contoh JavaScript</h3>
-    <pre>const response = await fetch("https://api-mzmdqh3n6a-uc.a.run.app/chat", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "x-api-key": "API_KEY_KAMU"
-  },
-  body: JSON.stringify({
-    prompt: "Halo PUTRA AI Studio"
-  })
-});
+    <pre>const response = await fetch(
+  "https://api-mzmdqh3n6a-uc.a.run.app/chat",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": "API_KEY_KAMU"
+    },
+    body: JSON.stringify({
+      prompt: "Halo PUTRA AI Studio"
+    })
+  }
+);
 
 const data = await response.json();
-console.log(data.content);</pre>
+
+console.log(data);</pre>
 
     <h3>Contoh Python</h3>
     <pre>import requests
@@ -236,19 +239,31 @@ payload = {
     "prompt": "Halo PUTRA AI Studio"
 }
 
-response = requests.post(url, headers=headers, json=payload)
+response = requests.post(
+    url,
+    headers=headers,
+    json=payload
+)
+
 data = response.json()
 
-print(data.get("content", data))</pre>
+print(data)</pre>
 
     <h3>Response Sukses</h3>
     <pre>{
   "success": true,
-  "content": "Hello! How can I help you?",
+  "content": "Halo! Ada yang bisa saya bantu?",
   "limit": 100,
   "used": 1,
-  "remain": 19
+  "remain": 99
 }</pre>
+
+    <h3>Response Error</h3>
+    <pre>{
+  "success": false,
+  "message": "API key tidak valid"
+}</pre>
+
   </div>
 </section>
 
@@ -344,16 +359,13 @@ print(data.get("content", data))</pre>
   <div class="about-layout">
     <div class="card about-profile">
       <div class="creator-avatar">
-        <img src="https://api.iconify.design/solar:user-bold.svg?color=%23ffffff" alt="Profil pembuat">
+        <img src="putra-profile.jpg" alt="M Putra Ramadhani">
       </div>
 
       <div>
-        <div class="panel-kicker">Creator</div>
-        <h3>Putra AI Studio</h3>
-        <p>
-          Halaman ini dibuat sebagai dashboard sederhana untuk mengelola akun,
-          API key, dokumentasi endpoint, dan tempat test request AI dalam satu tampilan.
-        </p>
+        <h3 class="creator-name">M PUTRA RAMADHANI</h3>
+        <div class="creator-role">PENGEMBANG</div>
+        <p class="creator-brand">PUTRA AI STUDIO</p>
       </div>
     </div>
 
@@ -365,17 +377,12 @@ print(data.get("content", data))</pre>
       </p>
 
       <div class="social-list">
-        <a class="social-link" href="https://www.instagram.com/" target="_blank" rel="noopener">
+        <a class="social-link" href="https://www.instagram.com/putramdhanii_/" target="_blank" rel="noopener">
           <img src="https://api.iconify.design/mdi:instagram.svg?color=%23ff2d55" alt="">
           <span>Instagram</span>
         </a>
 
-        <a class="social-link" href="https://github.com/" target="_blank" rel="noopener">
-          <img src="https://api.iconify.design/mdi:github.svg?color=%23101828" alt="">
-          <span>GitHub</span>
-        </a>
-
-        <a class="social-link" href="mailto:admin@putraaistudio.com">
+        <a class="social-link" href="mailto:mputramadhaniid">
           <img src="https://api.iconify.design/solar:letter-bold.svg?color=%230a84ff" alt="">
           <span>Email</span>
         </a>
@@ -384,8 +391,96 @@ print(data.get("content", data))</pre>
   </div>
 </section>
 
+<section class="page policy-page" id="privacy">
+  <h2 class="title">Kebijakan Privasi</h2>
+
+  <div class="card policy-shell">
+    <p class="policy-intro">
+      Halaman ini menjelaskan data apa saja yang digunakan oleh PUTRA AI STUDIO, alasan data itu dipakai,
+      serta tindakan yang dapat diambil jika terjadi pelanggaran penggunaan layanan.
+    </p>
+
+    <div class="policy-grid">
+      <article class="policy-block">
+        <h3>Data Akun</h3>
+        <p>Email, UID Firebase, status verifikasi email, API key, limit akun, dan status aktif/nonaktif dipakai untuk autentikasi, pengelolaan akun, serta akses layanan.</p>
+      </article>
+
+      <article class="policy-block">
+        <h3>Data Perangkat dan Jaringan</h3>
+        <p>Device ID, IP address, user agent browser, dan session ID dipakai untuk keamanan, pencegahan spam, deteksi penyalahgunaan, dan investigasi pelanggaran.</p>
+      </article>
+
+      <article class="policy-block">
+        <h3>Data Percakapan</h3>
+        <p>Prompt yang dikirim, histori chat, dan jawaban AI dapat disimpan untuk menjalankan layanan, menjaga konteks percakapan, dan memantau penyalahgunaan sistem.</p>
+      </article>
+
+      <article class="policy-block">
+        <h3>Data Pemakaian</h3>
+        <p>Jumlah request, limit bulanan, pemakaian harian, spam count, waktu request, dan catatan pelanggaran dipakai untuk menghitung kuota serta menjaga layanan tetap stabil.</p>
+      </article>
+
+      <article class="policy-block">
+        <h3>Ulasan</h3>
+        <p>Rating dan isi review yang dikirim user disimpan untuk evaluasi kualitas layanan dan perbaikan produk.</p>
+      </article>
+
+      <article class="policy-block">
+        <h3>Pembayaran</h3>
+        <p>Jika fitur upgrade dipakai, informasi paket, invoice, nominal, dan data QRIS yang diperlukan untuk proses pembayaran dapat diproses untuk menyelesaikan transaksi.</p>
+      </article>
+    </div>
+
+    <div class="policy-section">
+      <h3>Tujuan Penggunaan Data</h3>
+      <ul>
+        <li>Membuat dan mengelola akun pengguna.</li>
+        <li>Menyediakan API key dan layanan chat AI.</li>
+        <li>Menghitung kuota, limit, dan penggunaan layanan.</li>
+        <li>Mencegah spam, penyalahgunaan, dan akses yang tidak sah.</li>
+        <li>Menangani laporan, ulasan, serta peningkatan kualitas layanan.</li>
+      </ul>
+    </div>
+
+    <div class="policy-section">
+      <h3>Pelanggaran dan Konsekuensi</h3>
+      <ul>
+        <li>Mengirim request terlalu cepat secara berulang.</li>
+        <li>Mengirim pesan spam, acak, atau pesan yang sama berulang kali.</li>
+        <li>Menyalahgunakan API key, mencoba mengganggu layanan, atau memakai sistem di luar tujuan wajar.</li>
+        <li>Mencoba mengakses akun, endpoint, atau data yang bukan miliknya.</li>
+      </ul>
+      <p>
+        Jika pelanggaran terdeteksi, sistem dapat memberi peringatan, membatasi akses, menonaktifkan API key,
+        memblokir device/IP, atau melakukan banned permanen terhadap akun terkait.
+      </p>
+    </div>
+
+    <div class="policy-section">
+      <h3>Keamanan Data</h3>
+      <p>
+        Data sensitif admin dilindungi melalui autentikasi, verifikasi token server-side, dan aturan akses database.
+        User biasa hanya dapat mengakses data yang memang diizinkan untuk akunnya sendiri.
+      </p>
+    </div>
+
+    <div class="policy-section">
+      <h3>Catatan</h3>
+      <p>
+        Dengan menggunakan layanan ini, pengguna dianggap memahami bahwa data teknis tertentu perlu diproses
+        agar layanan dapat berjalan aman, stabil, dan sesuai aturan penggunaan.
+      </p>
+    </div>
+  </div>
+</section>
+
 <footer>
-  &copy; 2026 PUTRA AI STUDIO
+  <span>&copy; 2026 PUTRA AI STUDIO</span>
+  <div class="footer-links">
+    <a href="#privacy" onclick="showPage('privacy')">Kebijakan Privasi</a>
+    <a href="#" onclick="openVerificationHelp(); return false;">Verifikasi</a>
+  </div>
 </footer>
 
 <div class="modal hidden" id="authModal" onclick="closeAuthModal(event)">
@@ -404,6 +499,17 @@ print(data.get("content", data))</pre>
     </div>
 
     <div id="authMessage" class="auth-message hidden"></div>
+
+    <div id="verifyPanel" class="verify-panel hidden">
+      <h3>Cek email kamu</h3>
+      <p>
+        Link verifikasi sudah dikirim. Cek folder Inbox, Spam, atau Promosi sebelum login.
+      </p>
+      <div class="verify-actions">
+        <a href="https://mail.google.com/" target="_blank" rel="noreferrer">Buka Gmail</a>
+        <button class="secondary" onclick="setAuthMode('login')">Sudah verifikasi</button>
+      </div>
+    </div>
 
     <input id="email" type="email" placeholder="Email" autocomplete="email">
     <input id="password" type="password" placeholder="Password minimal 6 karakter" autocomplete="current-password">
@@ -512,6 +618,25 @@ print(data.get("content", data))</pre>
       class="html-preview-frame"
       sandbox="allow-scripts allow-forms allow-modals"
       title="Preview HTML"></iframe>
+  </div>
+</div>
+
+<div class="modal banned-modal hidden" id="bannedModal">
+  <div class="modal-card banned-card" onclick="event.stopPropagation()">
+    <div class="modal-top">
+      <div>
+        <h2 class="modal-title">Akun Dibanned</h2>
+        <p class="modal-subtitle" id="bannedMessage">
+          Akun ini tidak bisa digunakan saat ini.
+        </p>
+      </div>
+    </div>
+
+    <div class="banned-note">
+      Akses login telah dihentikan oleh sistem.
+    </div>
+
+    <button onclick="closeBannedModal()">Tutup</button>
   </div>
 </div>
 
