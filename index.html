@@ -1050,7 +1050,7 @@ data = requests.post(API_URL,
       </div>
     </div>
 
-    <div class="runner-stage" id="runnerStage" onclick="jumpRunner()">
+    <div class="runner-stage" id="runnerStage">
       <div class="runner-sky"></div>
       <div class="runner-stars"></div>
       <div class="runner-cloud cloud-one"></div>
@@ -1079,6 +1079,7 @@ data = requests.post(API_URL,
         <b>Kamu bisa bantu aku sekarang untuk sampai tujuan?</b>
         <button onclick="startRunnerFromIntro(event)">Mulai Perjalanan</button>
       </div>
+      <button class="runner-jump-btn" onclick="jumpRunner(); event.stopPropagation();">Lompat</button>
     </div>
 
   </div>

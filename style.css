@@ -809,7 +809,8 @@ body.night .maintenance-countdown{
 }
 .game-modal{z-index:1002}
 .game-card{
-  max-width:620px;
+  max-width:860px;
+  padding:24px;
 }
 .game-top{
   margin-bottom:14px;
@@ -850,11 +851,11 @@ body.night .maintenance-countdown{
   max-width:none;
 }
 .game-modal.fullscreen-active .runner-stage{
-  height:min(58vh,420px);
+  height:min(68vh,560px);
 }
 .runner-stage{
   position:relative;
-  height:250px;
+  height:360px;
   overflow:hidden;
   border-radius:28px;
   border:1px solid var(--glass-highlight);
@@ -863,6 +864,16 @@ body.night .maintenance-countdown{
     var(--pre-bg);
   box-shadow:var(--glass-inset);
   cursor:pointer;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+.runner-stage *,
+.game-card{
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
 }
 .runner-stage.day{
   background:
@@ -1179,6 +1190,21 @@ body.night .maintenance-countdown{
 .game-intro button{
   width:auto;
   margin:8px auto 0;
+}
+.runner-jump-btn{
+  position:absolute;
+  right:16px;
+  bottom:16px;
+  z-index:3;
+  width:auto;
+  min-width:96px;
+  margin:0;
+  padding:12px 16px;
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+}
+.game-overlay:not(.hidden) ~ .runner-jump-btn,
+.game-intro:not(.hidden) ~ .runner-jump-btn{
+  display:none;
 }
 @keyframes groundMove{
   to{background-position:-28px 0}
@@ -2104,6 +2130,41 @@ footer{
   .chat-top{align-items:flex-start;flex-direction:column}
   .chat-messages{max-height:460px;padding:18px}
   .chat-bubble{max-width:92%}
+  .game-modal{
+    padding:12px;
+  }
+  .game-card{
+    width:100%;
+    max-width:none;
+    padding:18px;
+    border-radius:28px;
+  }
+  .game-top{
+    margin-bottom:12px;
+  }
+  .game-top .modal-title{
+    font-size:26px;
+  }
+  .game-toolbar{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .game-toolbar-actions{
+    width:100%;
+  }
+  .game-toolbar-actions .game-audio-btn{
+    flex:1;
+  }
+  .runner-stage{
+    height:min(54vh,420px);
+  }
+  .runner-player{
+    left:28px;
+  }
+  .runner-jump-btn{
+    right:14px;
+    bottom:14px;
+  }
   .metric-row{grid-template-columns:1fr}
   .policy-grid{grid-template-columns:1fr}
   footer{justify-content:center}
