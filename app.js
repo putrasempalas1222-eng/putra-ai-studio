@@ -771,6 +771,41 @@ window.toggleGameMusic = function () {
   }
 };
 
+window.toggleGameFullscreen = async function () {
+  const modal = document.getElementById("maintenanceGameModal");
+  const card = modal.querySelector(".game-card");
+
+  try {
+    if (!document.fullscreenElement) {
+      await card.requestFullscreen?.();
+      modal.classList.add("fullscreen-active");
+      try {
+        await screen.orientation?.lock?.("landscape");
+      } catch (err) {
+        console.warn("Browser tidak mengizinkan lock landscape:", err);
+      }
+      return;
+    }
+
+    await document.exitFullscreen?.();
+  } catch (err) {
+    console.warn("Gagal mengubah mode fullscreen:", err);
+  }
+};
+
+document.addEventListener("fullscreenchange", () => {
+  const modal = document.getElementById("maintenanceGameModal");
+  modal.classList.toggle("fullscreen-active", Boolean(document.fullscreenElement));
+
+  if (!document.fullscreenElement) {
+    try {
+      screen.orientation?.unlock?.();
+    } catch (err) {
+      console.warn("Browser tidak mengizinkan unlock orientation:", err);
+    }
+  }
+});
+
 window.jumpRunner = function () {
   if (!runnerRunning) return;
   const player = document.getElementById("runnerPlayer");
@@ -1509,6 +1544,10 @@ window.testApi = async function () {
       true,
       data.imageBase64 || ""
     );
+
+    if (data.launchGame) {
+      openMaintenanceGame();
+    }
 
     // =========================
     // UPDATE USAGE PANEL

@@ -821,6 +821,11 @@ body.night .maintenance-countdown{
   gap:12px;
   margin-bottom:14px;
 }
+.game-toolbar-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
 .game-score{
   padding:10px 14px;
   border-radius:999px;
@@ -839,6 +844,13 @@ body.night .maintenance-countdown{
   color:var(--text);
   border:1px solid var(--line);
   box-shadow:var(--glass-inset);
+}
+.game-modal.fullscreen-active .game-card{
+  width:min(960px,calc(100vw - 24px));
+  max-width:none;
+}
+.game-modal.fullscreen-active .runner-stage{
+  height:min(58vh,420px);
 }
 .runner-stage{
   position:relative;

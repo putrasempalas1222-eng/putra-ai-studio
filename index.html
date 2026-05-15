@@ -1020,7 +1020,10 @@ data = requests.post(API_URL,
 
     <div class="game-toolbar">
       <div class="game-score">Skor <b id="gameScore">0</b></div>
-      <button class="game-audio-btn" id="gameMusicBtn" onclick="toggleGameMusic()">Musik: ON</button>
+      <div class="game-toolbar-actions">
+        <button class="game-audio-btn" id="gameMusicBtn" onclick="toggleGameMusic()">Musik: ON</button>
+        <button class="game-audio-btn" onclick="toggleGameFullscreen()">Full Screen</button>
+      </div>
     </div>
 
     <div class="runner-stage" id="runnerStage" onclick="jumpRunner()">
