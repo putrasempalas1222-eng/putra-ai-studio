@@ -63,8 +63,22 @@ let reviewTimer = null;
 let isShowingBanModal = false;
 let chatImageBase64 = "";
 let chatImageDataUrl = "";
+let maintenanceCountdownTimer = null;
+let runnerTimer = null;
+let runnerScoreTimer = null;
+let runnerRunning = false;
+let runnerScore = 0;
+let runnerSpeed = 5;
+let musicEnabled = true;
+let audioContext = null;
+let musicTimer = null;
+let environmentTimer = null;
+let currentEnvironmentIndex = 0;
+const runnerEnvironments = ["day", "foggy", "sandstorm", "night"];
 const REVIEW_DELAY = 60000;
 const REVIEW_RETRY_DELAY = 60000;
+const MAINTENANCE_API =
+  "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/maintenance";
 
 let deviceId = localStorage.getItem("device_id");
 
@@ -93,6 +107,112 @@ window.toggleTheme = function () {
 };
 
 applyTheme(localStorage.getItem("putraTheme") || "light");
+
+function applyMaintenanceState(data = {}) {
+  const isEnabled = data.enabled === true;
+  const modal = document.getElementById("maintenanceModal");
+  const messageBox = document.getElementById("maintenanceMessage");
+  const adminInfo = document.getElementById("maintenanceAdminInfo");
+  const adminMessageText = document.getElementById("maintenanceAdminMessageText");
+  const countdownCard = document.getElementById("maintenanceCountdownCard");
+
+  if (messageBox) {
+    messageBox.innerText = "Layanan saat ini sedang dalam maintenance.";
+  }
+
+  if (adminMessageText && adminInfo) {
+    const adminMessage = String(data.message || "").trim();
+    adminMessageText.innerText =
+      adminMessage || "Admin belum menambahkan informasi tambahan.";
+    adminInfo.classList.toggle("empty", !adminMessage);
+  }
+
+  if (modal) {
+    modal.classList.toggle("hidden", !isEnabled);
+  }
+
+  updateMaintenanceCountdown(data.endsAt, isEnabled);
+  if (countdownCard) {
+    countdownCard.classList.toggle("empty", !data.endsAt);
+  }
+}
+
+function updateMaintenanceCountdown(endsAt, isEnabled) {
+  clearInterval(maintenanceCountdownTimer);
+
+  const countdownText = document.getElementById("maintenanceCountdownText");
+  const endsAtText = document.getElementById("maintenanceEndsAtText");
+  if (!countdownText || !endsAtText) return;
+
+  const endTime = Number(endsAt || 0);
+  if (!isEnabled || !endTime) {
+    countdownText.innerText = "--";
+    endsAtText.innerText = "Belum ada waktu selesai dari admin.";
+    return;
+  }
+
+  const renderCountdown = () => {
+    const remaining = endTime - Date.now();
+    const endDate = new Date(endTime);
+
+    endsAtText.innerText =
+      "Sampai " +
+      endDate.toLocaleString("id-ID", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+
+    if (remaining <= 0) {
+      countdownText.innerText = "Maintenance selesai";
+      applyMaintenanceState({
+        enabled: false,
+        message: adminMessageText?.innerText || "",
+        endsAt: endTime,
+      });
+      loadMaintenanceState();
+      return;
+    }
+
+    const totalSeconds = Math.floor(remaining / 1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    countdownText.innerText = [
+      days ? `${days} hari` : "",
+      `${String(hours).padStart(2, "0")} jam`,
+      `${String(minutes).padStart(2, "0")} menit`,
+      `${String(seconds).padStart(2, "0")} detik`,
+    ]
+      .filter(Boolean)
+      .join(" ");
+  };
+
+  renderCountdown();
+  maintenanceCountdownTimer = setInterval(renderCountdown, 1000);
+}
+
+async function loadMaintenanceState() {
+  try {
+    const response = await fetch(MAINTENANCE_API, { cache: "no-store" });
+    const data = await response.json();
+
+    if (!response.ok || data.success === false) {
+      throw new Error(data.error || "Gagal memuat status maintenance.");
+    }
+
+    applyMaintenanceState(data.data || {});
+  } catch (error) {
+    console.warn("Gagal memuat status maintenance:", error);
+  }
+}
+
+loadMaintenanceState();
+setInterval(loadMaintenanceState, 5000);
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) loadMaintenanceState();
+});
 
 window.toggleMenu = function () {
   document.getElementById("menu").classList.toggle("active");
@@ -253,6 +373,7 @@ document.addEventListener("keydown", (event) => {
     closePaymentModal();
     closeReviewModal();
     closeHtmlPreview();
+    closeMaintenanceGame();
   }
 });
 
@@ -581,6 +702,218 @@ window.cancelReview = function () {
 
   scheduleReviewPopup(user, REVIEW_RETRY_DELAY);
 };
+
+window.openMaintenanceGame = function () {
+  document.getElementById("maintenanceGameModal").classList.remove("hidden");
+  prepareRunnerIntro();
+};
+
+window.closeMaintenanceGame = function (event) {
+  if (event && event.target !== document.getElementById("maintenanceGameModal")) return;
+  document.getElementById("maintenanceGameModal").classList.add("hidden");
+  stopRunnerGame();
+  stopGameMusic();
+};
+
+function ensureAudioContext() {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioContext.state === "suspended") {
+    audioContext.resume();
+  }
+}
+
+function playTone(frequency, duration, type = "sine", volume = 0.05) {
+  ensureAudioContext();
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+  oscillator.type = type;
+  oscillator.frequency.value = frequency;
+  gain.gain.value = volume;
+  oscillator.connect(gain);
+  gain.connect(audioContext.destination);
+  oscillator.start();
+  gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration);
+  oscillator.stop(audioContext.currentTime + duration);
+}
+
+function playJumpSound() {
+  playTone(520, 0.14, "triangle", 0.05);
+}
+
+function playCrashSound() {
+  playTone(120, 0.28, "sawtooth", 0.07);
+}
+
+function startGameMusic() {
+  if (!musicEnabled || musicTimer) return;
+  const melody = [330, 392, 440, 392, 523, 440];
+  let step = 0;
+  musicTimer = setInterval(() => {
+    playTone(melody[step % melody.length], 0.18, "sine", 0.025);
+    step += 1;
+  }, 320);
+}
+
+function stopGameMusic() {
+  clearInterval(musicTimer);
+  musicTimer = null;
+}
+
+window.toggleGameMusic = function () {
+  musicEnabled = !musicEnabled;
+  document.getElementById("gameMusicBtn").innerText = "Musik: " + (musicEnabled ? "ON" : "OFF");
+  if (musicEnabled) {
+    startGameMusic();
+  } else {
+    stopGameMusic();
+  }
+};
+
+window.jumpRunner = function () {
+  if (!runnerRunning) return;
+  const player = document.getElementById("runnerPlayer");
+  if (player.classList.contains("jumping")) return;
+  player.classList.add("jumping");
+  playJumpSound();
+  setTimeout(() => player.classList.remove("jumping"), 720);
+};
+
+function stopRunnerGame() {
+  runnerRunning = false;
+  clearInterval(runnerTimer);
+  clearInterval(runnerScoreTimer);
+  runnerTimer = null;
+  runnerScoreTimer = null;
+  clearInterval(environmentTimer);
+  environmentTimer = null;
+}
+
+window.restartRunnerGame = function () {
+  stopRunnerGame();
+  runnerRunning = true;
+  runnerScore = 0;
+  runnerSpeed = 5;
+
+  const obstacle = document.getElementById("runnerObstacle");
+  const overlay = document.getElementById("gameOverlay");
+  obstacle.style.right = "-34px";
+  setNextObstacleType();
+  overlay.classList.add("hidden");
+  document.getElementById("gameScore").innerText = "0";
+  if (musicEnabled) startGameMusic();
+  startEnvironmentCycle();
+
+  runnerTimer = setInterval(updateRunnerFrame, 16);
+  runnerScoreTimer = setInterval(() => {
+    if (!runnerRunning) return;
+    runnerScore += 1;
+    runnerSpeed = Math.min(12, 5 + runnerScore / 120);
+    document.getElementById("gameScore").innerText = String(runnerScore);
+  }, 100);
+};
+
+function prepareRunnerIntro() {
+  stopRunnerGame();
+  stopGameMusic();
+  runnerScore = 0;
+  runnerSpeed = 5;
+  document.getElementById("gameScore").innerText = "0";
+  document.getElementById("gameOverlay").classList.add("hidden");
+  document.getElementById("gameIntro").classList.remove("hidden");
+  setRunnerEnvironment("day");
+}
+
+window.startRunnerFromIntro = function (event) {
+  event?.stopPropagation();
+  document.getElementById("gameIntro").classList.add("hidden");
+  restartRunnerGame();
+};
+
+function updateRunnerFrame() {
+  const obstacle = document.getElementById("runnerObstacle");
+  const player = document.getElementById("runnerPlayer");
+  const stage = document.getElementById("runnerStage");
+  const currentRight = parseFloat(obstacle.style.right || "-34");
+  const nextRight = currentRight + runnerSpeed;
+
+  if (nextRight > stage.clientWidth + 34) {
+    obstacle.style.right = "-34px";
+    setNextObstacleType();
+  } else {
+    obstacle.style.right = nextRight + "px";
+  }
+
+  const playerRect = getPlayerHitbox(player.getBoundingClientRect());
+  const obstacleRect = getObstacleHitbox(
+    obstacle.getBoundingClientRect(),
+    obstacle.classList.contains("crate"),
+  );
+  const collided =
+    playerRect.left < obstacleRect.right &&
+    playerRect.right > obstacleRect.left &&
+    playerRect.top < obstacleRect.bottom &&
+    playerRect.bottom > obstacleRect.top;
+
+  if (collided) {
+    runnerRunning = false;
+    stopRunnerGame();
+    stopGameMusic();
+    playCrashSound();
+    document.getElementById("finalGameScore").innerText = String(runnerScore);
+    document.getElementById("gameOverlay").classList.remove("hidden");
+  }
+}
+
+function setNextObstacleType() {
+  const obstacle = document.getElementById("runnerObstacle");
+  const type = Math.random() < 0.5 ? "cactus" : "crate";
+  obstacle.className = "runner-obstacle " + type;
+}
+
+function startEnvironmentCycle() {
+  clearInterval(environmentTimer);
+  currentEnvironmentIndex = 0;
+  setRunnerEnvironment(runnerEnvironments[currentEnvironmentIndex]);
+  environmentTimer = setInterval(() => {
+    currentEnvironmentIndex = (currentEnvironmentIndex + 1) % runnerEnvironments.length;
+    setRunnerEnvironment(runnerEnvironments[currentEnvironmentIndex]);
+  }, 12000);
+}
+
+function setRunnerEnvironment(name) {
+  const stage = document.getElementById("runnerStage");
+  stage.classList.remove("day", "night", "foggy", "sandstorm");
+  stage.classList.add(name);
+}
+
+function getPlayerHitbox(rect) {
+  return {
+    left: rect.left + 14,
+    right: rect.right - 10,
+    top: rect.top + 18,
+    bottom: rect.bottom - 2,
+  };
+}
+
+function getObstacleHitbox(rect, isCrate) {
+  return {
+    left: rect.left + (isCrate ? 3 : 6),
+    right: rect.right - (isCrate ? 3 : 6),
+    top: rect.top + (isCrate ? 3 : 6),
+    bottom: rect.bottom,
+  };
+}
+
+document.addEventListener("keydown", (event) => {
+  const gameModal = document.getElementById("maintenanceGameModal");
+  if (gameModal.classList.contains("hidden")) return;
+  if (event.code === "Space" || event.key === "ArrowUp") {
+    event.preventDefault();
+    jumpRunner();
+  }
+});
 
 window.submitReview = async function () {
   const user = auth.currentUser;

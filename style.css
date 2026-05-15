@@ -581,6 +581,628 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none}
   color:#fecaca;
   background:rgba(127,29,29,.22);
 }
+.maintenance-modal{
+  background:
+    radial-gradient(circle at 50% 18%,rgba(10,132,255,.18),transparent 30%),
+    radial-gradient(circle at 72% 72%,rgba(175,82,222,.14),transparent 28%),
+    var(--modal-bg);
+}
+.maintenance-card{
+  max-width:470px;
+  overflow:hidden;
+  isolation:isolate;
+  padding:24px;
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.96),rgba(246,248,255,.84));
+  border-color:rgba(255,255,255,.84);
+  box-shadow:
+    0 32px 90px rgba(10,132,255,.16),
+    0 18px 50px rgba(15,23,42,.18),
+    var(--glass-inset);
+}
+body.night .maintenance-card{
+  background:
+    linear-gradient(145deg,rgba(18,27,49,.96),rgba(8,14,30,.9));
+  border-color:rgba(255,255,255,.16);
+}
+.maintenance-card:after{
+  content:"";
+  position:absolute;
+  inset:auto -20% -45% auto;
+  width:280px;
+  height:280px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(50,173,230,.28),transparent 70%);
+  filter:blur(2px);
+  pointer-events:none;
+  z-index:-1;
+}
+.maintenance-orb{
+  position:absolute !important;
+  top:-74px;
+  right:-56px;
+  width:210px;
+  height:210px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 30% 30%,rgba(255,255,255,.95),rgba(255,255,255,0) 28%),
+    linear-gradient(135deg,var(--blue),var(--purple),var(--pink));
+  opacity:.9;
+  filter:blur(2px);
+  box-shadow:0 24px 80px rgba(10,132,255,.28);
+}
+.maintenance-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:18px;
+}
+.maintenance-icon{
+  position:relative;
+  width:54px;
+  height:54px;
+  display:grid;
+  place-items:center;
+  border-radius:20px;
+  background:linear-gradient(135deg,rgba(10,132,255,.16),rgba(175,82,222,.18));
+  border:1px solid rgba(10,132,255,.2);
+  box-shadow:0 14px 30px rgba(10,132,255,.12),var(--glass-inset);
+}
+.maintenance-icon:before,
+.maintenance-icon:after,
+.maintenance-icon span{
+  content:"";
+  position:absolute;
+  border-radius:999px;
+}
+.maintenance-icon:before{
+  width:26px;
+  height:26px;
+  border:2px solid var(--blue);
+  border-top-color:transparent;
+  animation:maintenanceSpin 1.7s linear infinite;
+}
+.maintenance-icon:after{
+  width:8px;
+  height:8px;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  box-shadow:0 0 20px rgba(10,132,255,.48);
+}
+.maintenance-chip{
+  width:max-content;
+  padding:8px 11px;
+  border-radius:999px;
+  color:var(--blue);
+  background:rgba(10,132,255,.1);
+  border:1px solid rgba(10,132,255,.16);
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.06em;
+}
+.maintenance-card .modal-top{
+  margin-bottom:16px;
+}
+.maintenance-card .modal-title{
+  font-size:32px;
+  letter-spacing:-.03em;
+}
+.maintenance-card .modal-subtitle{
+  max-width:330px;
+  font-size:15px;
+}
+.maintenance-note{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  margin-top:18px;
+  padding:16px;
+  border:1px solid rgba(10,132,255,.16);
+  border-radius:22px;
+  color:var(--text);
+  background:
+    linear-gradient(135deg,rgba(10,132,255,.08),rgba(175,82,222,.08)),
+    rgba(255,255,255,.42);
+  box-shadow:var(--glass-inset);
+}
+body.night .maintenance-note{
+  background:
+    linear-gradient(135deg,rgba(10,132,255,.14),rgba(175,82,222,.12)),
+    rgba(15,23,42,.5);
+}
+.maintenance-note b{
+  display:block;
+  margin-bottom:4px;
+  font-size:15px;
+}
+.maintenance-note p{
+  color:var(--muted-text);
+  line-height:1.55;
+  font-size:14px;
+}
+.maintenance-admin-info{
+  margin-top:14px;
+  padding:16px;
+  border-radius:22px;
+  border:1px solid rgba(175,82,222,.18);
+  background:
+    linear-gradient(135deg,rgba(175,82,222,.09),rgba(10,132,255,.08)),
+    rgba(255,255,255,.46);
+  box-shadow:var(--glass-inset);
+}
+body.night .maintenance-admin-info{
+  border-color:rgba(255,255,255,.12);
+  background:
+    linear-gradient(135deg,rgba(175,82,222,.14),rgba(10,132,255,.12)),
+    rgba(15,23,42,.48);
+}
+.maintenance-admin-head{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:8px;
+}
+.maintenance-admin-head b{
+  font-size:15px;
+}
+.maintenance-admin-dot{
+  width:11px;
+  height:11px;
+  border-radius:999px;
+  background:linear-gradient(135deg,var(--purple),var(--pink));
+  box-shadow:0 0 18px rgba(175,82,222,.42);
+}
+.maintenance-admin-info p{
+  color:var(--text);
+  line-height:1.6;
+  font-size:14px;
+  padding-left:21px;
+}
+.maintenance-admin-info.empty p{
+  color:var(--muted);
+}
+.maintenance-countdown{
+  margin-top:14px;
+  padding:16px;
+  border-radius:22px;
+  border:1px solid rgba(52,199,89,.18);
+  background:
+    linear-gradient(135deg,rgba(52,199,89,.1),rgba(10,132,255,.08)),
+    rgba(255,255,255,.46);
+  box-shadow:var(--glass-inset);
+}
+body.night .maintenance-countdown{
+  border-color:rgba(255,255,255,.12);
+  background:
+    linear-gradient(135deg,rgba(52,199,89,.13),rgba(10,132,255,.12)),
+    rgba(15,23,42,.48);
+}
+.maintenance-countdown-dot{
+  width:11px;
+  height:11px;
+  border-radius:999px;
+  background:linear-gradient(135deg,var(--green),var(--cyan));
+  box-shadow:0 0 18px rgba(52,199,89,.42);
+}
+.maintenance-countdown strong{
+  display:block;
+  margin-left:21px;
+  color:var(--ink);
+  font-size:22px;
+  line-height:1.25;
+  letter-spacing:-.02em;
+}
+.maintenance-countdown p{
+  margin-top:6px;
+  margin-left:21px;
+  color:var(--muted-text);
+  line-height:1.5;
+  font-size:14px;
+}
+.maintenance-countdown.empty strong{
+  color:var(--muted);
+}
+.maintenance-game-btn{
+  margin-top:16px;
+  background:linear-gradient(135deg,var(--purple),var(--pink));
+  box-shadow:0 16px 34px rgba(175,82,222,.22);
+}
+.game-modal{z-index:1002}
+.game-card{
+  max-width:620px;
+}
+.game-top{
+  margin-bottom:14px;
+}
+.game-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+}
+.game-score{
+  padding:10px 14px;
+  border-radius:999px;
+  background:var(--soft-panel);
+  border:1px solid var(--line);
+  font-weight:900;
+}
+.game-score b{
+  color:var(--blue);
+}
+.game-audio-btn{
+  width:auto;
+  margin-top:0;
+  padding:10px 14px;
+  background:var(--soft-panel);
+  color:var(--text);
+  border:1px solid var(--line);
+  box-shadow:var(--glass-inset);
+}
+.runner-stage{
+  position:relative;
+  height:250px;
+  overflow:hidden;
+  border-radius:28px;
+  border:1px solid var(--glass-highlight);
+  background:
+    linear-gradient(180deg,rgba(10,132,255,.16),rgba(175,82,222,.1)),
+    var(--pre-bg);
+  box-shadow:var(--glass-inset);
+  cursor:pointer;
+}
+.runner-stage.day{
+  background:
+    linear-gradient(180deg,rgba(125,211,252,.44),rgba(254,240,138,.16)),
+    var(--pre-bg);
+}
+.runner-stage.night{
+  background:
+    linear-gradient(180deg,rgba(15,23,42,.92),rgba(30,41,59,.72)),
+    var(--pre-bg);
+}
+.runner-stage.foggy{
+  background:
+    linear-gradient(180deg,rgba(203,213,225,.36),rgba(148,163,184,.2)),
+    var(--pre-bg);
+}
+.runner-stage.sandstorm{
+  background:
+    linear-gradient(180deg,rgba(251,191,36,.22),rgba(180,83,9,.18)),
+    var(--pre-bg);
+}
+.runner-sky{
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(circle at 18% 24%,rgba(255,255,255,.8),transparent 12%),
+    radial-gradient(circle at 72% 18%,rgba(255,255,255,.6),transparent 10%),
+    linear-gradient(180deg,rgba(255,255,255,.12),transparent 56%);
+}
+.runner-stars{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  background:
+    radial-gradient(circle at 12% 18%,#fff 0 2px,transparent 3px),
+    radial-gradient(circle at 24% 30%,#fff 0 1.5px,transparent 2.5px),
+    radial-gradient(circle at 62% 16%,#fff 0 2px,transparent 3px),
+    radial-gradient(circle at 78% 28%,#fff 0 1.5px,transparent 2.5px),
+    radial-gradient(circle at 88% 12%,#fff 0 2px,transparent 3px);
+}
+.runner-stage.night .runner-stars{opacity:1}
+.runner-cloud{
+  position:absolute;
+  width:72px;
+  height:24px;
+  border-radius:999px;
+  background:rgba(255,255,255,.7);
+  opacity:.8;
+}
+.runner-cloud:before,
+.runner-cloud:after{
+  content:"";
+  position:absolute;
+  bottom:0;
+  border-radius:50%;
+  background:inherit;
+}
+.runner-cloud:before{
+  left:12px;
+  width:28px;
+  height:28px;
+}
+.runner-cloud:after{
+  right:12px;
+  width:36px;
+  height:36px;
+}
+.cloud-one{
+  top:38px;
+  left:18%;
+  animation:cloudDrift 8s linear infinite;
+}
+.cloud-two{
+  top:72px;
+  right:12%;
+  transform:scale(.82);
+  animation:cloudDrift 11s linear infinite reverse;
+}
+.runner-stage.night .runner-cloud{
+  opacity:.22;
+}
+.runner-fog,
+.runner-sand{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.runner-fog{
+  background:
+    linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent),
+    linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);
+  background-size:220px 100%,280px 100%;
+  animation:fogMove 5s linear infinite;
+}
+.runner-stage.foggy .runner-fog{opacity:1}
+.runner-sand{
+  background:
+    linear-gradient(110deg,transparent 0 35%,rgba(251,191,36,.26) 42%,transparent 49%),
+    linear-gradient(110deg,transparent 0 52%,rgba(255,255,255,.18) 58%,transparent 64%);
+  background-size:180px 100%,240px 100%;
+  animation:sandMove .9s linear infinite;
+}
+.runner-stage.sandstorm .runner-sand{opacity:1}
+.runner-ground{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  height:54px;
+  background:
+    linear-gradient(90deg,rgba(10,132,255,.24) 50%,transparent 50%);
+  background-size:28px 100%;
+  border-top:1px solid rgba(10,132,255,.22);
+  animation:groundMove .45s linear infinite;
+}
+.runner-player{
+  position:absolute;
+  left:42px;
+  bottom:54px;
+  width:78px;
+  height:62px;
+}
+.horse-body{
+  position:absolute;
+  left:16px;
+  bottom:8px;
+  width:48px;
+  height:28px;
+  border-radius:22px 24px 18px 18px;
+  background:linear-gradient(135deg,#a16207,#78350f);
+  box-shadow:0 14px 24px rgba(120,53,15,.18);
+}
+.horse-body:before{
+  content:"";
+  position:absolute;
+  right:-10px;
+  top:1px;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:inherit;
+}
+.horse-head{
+  position:absolute;
+  right:2px;
+  bottom:25px;
+  width:26px;
+  height:24px;
+  border-radius:16px 16px 14px 14px;
+  background:linear-gradient(135deg,#b45309,#78350f);
+}
+.horse-head:before{
+  content:"";
+  position:absolute;
+  right:1px;
+  top:-8px;
+  width:9px;
+  height:13px;
+  border-radius:999px 999px 0 0;
+  background:#78350f;
+  transform:rotate(18deg);
+}
+.horse-head:after{
+  content:"";
+  position:absolute;
+  right:5px;
+  top:8px;
+  width:4px;
+  height:4px;
+  border-radius:50%;
+  background:#fff;
+}
+.rider-body{
+  position:absolute;
+  left:32px;
+  bottom:31px;
+  width:18px;
+  height:24px;
+  border-radius:10px 10px 8px 8px;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+}
+.rider-head{
+  position:absolute;
+  left:31px;
+  bottom:51px;
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  background:#f2c6a0;
+}
+.rider-head:before{
+  content:"";
+  position:absolute;
+  top:-3px;
+  left:1px;
+  width:18px;
+  height:8px;
+  border-radius:999px 999px 5px 5px;
+  background:#111827;
+}
+.horse-leg{
+  position:absolute;
+  bottom:-2px;
+  width:10px;
+  height:20px;
+  border-radius:0 0 999px 999px;
+  background:linear-gradient(180deg,#92400e,#78350f);
+}
+.leg-one{left:24px}
+.leg-two{left:48px}
+.runner-player:not(.jumping) .leg-one{
+  animation:runnerLeg .28s ease-in-out infinite alternate;
+}
+.runner-player:not(.jumping) .leg-two{
+  animation:runnerLeg .28s ease-in-out infinite alternate-reverse;
+}
+.runner-obstacle{
+  position:absolute;
+  right:-34px;
+  bottom:54px;
+  width:34px;
+  height:48px;
+  box-shadow:0 14px 26px rgba(15,23,42,.16);
+}
+.runner-obstacle.cactus{
+  border-radius:16px 16px 10px 10px;
+  background:linear-gradient(180deg,#34d399,#15803d);
+}
+.runner-obstacle.cactus:before,
+.runner-obstacle.cactus span{
+  content:"";
+  position:absolute;
+  bottom:8px;
+  width:10px;
+  height:25px;
+  border-radius:999px;
+  background:inherit;
+}
+.runner-obstacle.cactus:before{
+  left:-7px;
+  transform:rotate(-28deg);
+}
+.runner-obstacle.cactus span{
+  right:-7px;
+  transform:rotate(28deg);
+}
+.runner-obstacle.crate{
+  height:36px;
+  bottom:54px;
+  border-radius:8px;
+  background:
+    linear-gradient(45deg,transparent 46%,rgba(255,255,255,.35) 47%,rgba(255,255,255,.35) 53%,transparent 54%),
+    linear-gradient(-45deg,transparent 46%,rgba(255,255,255,.35) 47%,rgba(255,255,255,.35) 53%,transparent 54%),
+    linear-gradient(135deg,#a16207,#78350f);
+  border:2px solid rgba(69,26,3,.35);
+}
+.runner-obstacle.crate:before,
+.runner-obstacle.crate span{
+  display:none;
+}
+.runner-player.jumping{
+  animation:runnerJump .72s cubic-bezier(.2,.75,.28,1);
+}
+@keyframes runnerJump{
+  0%,100%{transform:translateY(0)}
+  42%,58%{transform:translateY(-118px)}
+}
+.game-overlay{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-content:center;
+  gap:8px;
+  text-align:center;
+  background:linear-gradient(180deg,rgba(2,6,23,.16),rgba(2,6,23,.72));
+}
+.game-overlay.hidden{
+  display:none;
+}
+.game-overlay b{
+  font-size:28px;
+  color:#fff;
+}
+.game-overlay span{
+  color:#e2e8f0;
+}
+.game-overlay button{
+  width:auto;
+  margin:8px auto 0;
+}
+.game-intro{
+  position:absolute;
+  inset:0;
+  z-index:2;
+  display:grid;
+  place-content:center;
+  gap:10px;
+  padding:24px;
+  text-align:center;
+  background:linear-gradient(180deg,rgba(2,6,23,.18),rgba(2,6,23,.74));
+}
+.game-intro.hidden{display:none}
+.game-intro span{
+  color:#dbeafe;
+  font-size:15px;
+}
+.game-intro b{
+  max-width:360px;
+  color:#fff;
+  font-size:24px;
+  line-height:1.25;
+}
+.game-intro button{
+  width:auto;
+  margin:8px auto 0;
+}
+@keyframes groundMove{
+  to{background-position:-28px 0}
+}
+@keyframes runnerLeg{
+  to{transform:translateY(4px)}
+}
+@keyframes cloudDrift{
+  0%{transform:translateX(0)}
+  50%{transform:translateX(16px)}
+  100%{transform:translateX(0)}
+}
+@keyframes fogMove{
+  to{background-position:-220px 0,-280px 0}
+}
+@keyframes sandMove{
+  to{background-position:-180px 0,-240px 0}
+}
+.maintenance-pulse{
+  flex:0 0 auto;
+  width:11px;
+  height:11px;
+  margin-top:5px;
+  border-radius:999px;
+  background:var(--blue);
+  box-shadow:0 0 0 0 rgba(10,132,255,.34);
+  animation:maintenancePulse 1.8s ease-out infinite;
+}
+@keyframes maintenanceSpin{
+  to{transform:rotate(360deg)}
+}
+@keyframes maintenancePulse{
+  0%{box-shadow:0 0 0 0 rgba(10,132,255,.34)}
+  70%{box-shadow:0 0 0 13px rgba(10,132,255,0)}
+  100%{box-shadow:0 0 0 0 rgba(10,132,255,0)}
+}
 .auth-footer{text-align:center;color:var(--muted);font-size:14px;margin-top:16px}
 .auth-footer span{color:var(--blue);font-weight:900;cursor:pointer}
 

@@ -958,6 +958,105 @@ data = requests.post(API_URL,
   </div>
 </div>
 
+<div class="modal maintenance-modal hidden" id="maintenanceModal">
+  <div class="modal-card maintenance-card" onclick="event.stopPropagation()">
+    <div class="maintenance-orb" aria-hidden="true"></div>
+    <div class="maintenance-head">
+      <div class="maintenance-icon" aria-hidden="true">
+        <span></span>
+      </div>
+      <div class="maintenance-chip">AI SYSTEM UPDATE</div>
+    </div>
+
+    <div class="modal-top">
+      <div>
+        <h2 class="modal-title">Sedang Maintenance</h2>
+        <p class="modal-subtitle" id="maintenanceMessage">
+          Layanan sedang dalam perbaikan sementara. Silakan coba lagi nanti.
+        </p>
+      </div>
+    </div>
+
+    <div class="maintenance-note">
+      <span class="maintenance-pulse" aria-hidden="true"></span>
+      <div>
+        <b>Optimalisasi sedang berjalan</b>
+        <p>Beberapa fitur mungkin belum bisa digunakan sampai maintenance selesai.</p>
+      </div>
+    </div>
+
+    <div class="maintenance-admin-info" id="maintenanceAdminInfo">
+      <div class="maintenance-admin-head">
+        <span class="maintenance-admin-dot" aria-hidden="true"></span>
+        <b>Informasi dari admin</b>
+      </div>
+      <p id="maintenanceAdminMessageText"></p>
+    </div>
+
+    <div class="maintenance-countdown" id="maintenanceCountdownCard">
+      <div class="maintenance-admin-head">
+        <span class="maintenance-countdown-dot" aria-hidden="true"></span>
+        <b>Perkiraan selesai</b>
+      </div>
+      <strong id="maintenanceCountdownText">--</strong>
+      <p id="maintenanceEndsAtText"></p>
+    </div>
+
+    <button class="maintenance-game-btn" onclick="openMaintenanceGame()">
+      Mau menunggu sambil ngegame?
+    </button>
+  </div>
+</div>
+
+<div class="modal game-modal hidden" id="maintenanceGameModal" onclick="closeMaintenanceGame(event)">
+  <div class="modal-card game-card" onclick="event.stopPropagation()">
+    <div class="modal-top game-top">
+      <div>
+        <h2 class="modal-title">AI Runner</h2>
+        <p class="modal-subtitle">Lompat, hindari rintangan, dan kumpulkan skor setinggi mungkin.</p>
+      </div>
+      <button class="close-btn" onclick="closeMaintenanceGame()" aria-label="Tutup">&times;</button>
+    </div>
+
+    <div class="game-toolbar">
+      <div class="game-score">Skor <b id="gameScore">0</b></div>
+      <button class="game-audio-btn" id="gameMusicBtn" onclick="toggleGameMusic()">Musik: ON</button>
+    </div>
+
+    <div class="runner-stage" id="runnerStage" onclick="jumpRunner()">
+      <div class="runner-sky"></div>
+      <div class="runner-stars"></div>
+      <div class="runner-cloud cloud-one"></div>
+      <div class="runner-cloud cloud-two"></div>
+      <div class="runner-fog"></div>
+      <div class="runner-sand"></div>
+      <div class="runner-ground"></div>
+      <div class="runner-player" id="runnerPlayer">
+        <span class="rider-head"></span>
+        <span class="rider-body"></span>
+        <span class="horse-head"></span>
+        <span class="horse-body"></span>
+        <i class="horse-leg leg-one"></i>
+        <i class="horse-leg leg-two"></i>
+      </div>
+      <div class="runner-obstacle" id="runnerObstacle">
+        <span></span>
+      </div>
+      <div class="game-overlay hidden" id="gameOverlay">
+        <b>Game Over</b>
+        <span>Skor kamu: <strong id="finalGameScore">0</strong></span>
+        <button onclick="restartRunnerGame()">Main Lagi</button>
+      </div>
+      <div class="game-intro" id="gameIntro">
+        <span>Halo, selagi kamu sedang menunggu maintenance nih...</span>
+        <b>Kamu bisa bantu aku sekarang untuk sampai tujuan?</b>
+        <button onclick="startRunnerFromIntro(event)">Mulai Perjalanan</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 
 <script type="module" src="app.js"></script>
