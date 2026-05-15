@@ -493,15 +493,11 @@ function scheduleReviewPopup(user, delay = REVIEW_DELAY) {
 
   if (!user || hasSentReview(user)) return;
 
-  const delayedUntil = Number(localStorage.getItem(getReviewDelayKey(user)) || 0);
-  const now = Date.now();
-  const finalDelay = Math.max(delay, delayedUntil - now, 0);
-
   reviewTimer = setTimeout(() => {
     if (auth.currentUser && auth.currentUser.uid === user.uid && !hasSentReview(user)) {
       openReviewModal();
     }
-  }, finalDelay);
+  }, delay);
 }
 
 function showReviewMessage(message, type = "error") {
@@ -547,7 +543,6 @@ window.cancelReview = function () {
   const user = auth.currentUser;
   if (!user || hasSentReview(user)) return;
 
-  localStorage.setItem(getReviewDelayKey(user), String(Date.now() + REVIEW_RETRY_DELAY));
   scheduleReviewPopup(user, REVIEW_RETRY_DELAY);
 };
 
@@ -578,6 +573,7 @@ window.submitReview = async function () {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
         "x-api-key": currentApiKey,
         "x-device-id": deviceId,
       },
@@ -594,7 +590,6 @@ window.submitReview = async function () {
     }
 
     localStorage.setItem(getReviewSentKey(user), "true");
-    localStorage.removeItem(getReviewDelayKey(user));
     clearTimeout(reviewTimer);
     showReviewMessage("Ulasan berhasil dikirim. Terima kasih!", "success");
     document.getElementById("reviewModal").classList.add("hidden");
@@ -610,7 +605,6 @@ async function syncReviewStatus(user) {
     const reviewSnap = await getDoc(doc(db, "reviews", user.uid));
     if (reviewSnap.exists()) {
       localStorage.setItem(getReviewSentKey(user), "true");
-      localStorage.removeItem(getReviewDelayKey(user));
     }
   } catch (err) {
     console.warn("Gagal mengecek status ulasan:", err);
@@ -652,6 +646,46 @@ function updateAiBubble(bubble, message, canSpeak = true) {
 
   const chatMessages = document.getElementById("chatMessages");
   chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function setAiLoadingState(bubble) {
+  bubble.classList.add("typing");
+  bubble.innerHTML = `
+    <span>PUTRA AI sedang mengetik</span>
+    <span class="typing-dots" aria-hidden="true">
+      <i></i><i></i><i></i>
+    </span>
+  `;
+}
+
+function setChatSendingState(isSending) {
+  const sendButton = document.getElementById("sendChatBtn");
+  const promptInput = document.getElementById("testPrompt");
+  sendButton.disabled = isSending;
+  sendButton.classList.toggle("loading", isSending);
+  promptInput.disabled = isSending;
+}
+
+async function typeAiBubble(bubble, message, canSpeak = true) {
+  bubble.classList.remove("typing");
+  bubble.innerHTML = "";
+
+  const textBox = document.createElement("div");
+  textBox.className = "chat-text";
+  bubble.appendChild(textBox);
+
+  const text = String(message || "");
+  const chunkSize = text.length > 500 ? 3 : 1;
+  const delay = text.length > 500 ? 8 : 16;
+
+  for (let i = 0; i < text.length; i += chunkSize) {
+    textBox.innerText = text.slice(0, i + chunkSize);
+    const chatMessages = document.getElementById("chatMessages");
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    await new Promise((resolve) => setTimeout(resolve, delay));
+  }
+
+  updateAiBubble(bubble, text, canSpeak);
 }
 
 function renderAiContent(container, message) {
@@ -915,7 +949,9 @@ window.testApi = async function () {
 
   addChatMessage(prompt, "user");
 
-  const loadingBubble = addChatMessage("PUTRA AI sedang mengetik...", "ai");
+  const loadingBubble = addChatMessage("", "ai");
+  setAiLoadingState(loadingBubble);
+  setChatSendingState(true);
 
   try {
     const response = await fetch(CHAT_API, {
@@ -935,11 +971,11 @@ window.testApi = async function () {
     if (!response.ok || !data.success) {
       if (data.banned) {
         await handleBannedSession(data.message || data.error || "Akun ini dibanned.");
-        updateAiBubble(loadingBubble, data.message || data.error || "Akun ini dibanned.", false);
+        await typeAiBubble(loadingBubble, data.message || data.error || "Akun ini dibanned.", false);
         return;
       }
 
-      updateAiBubble(loadingBubble, data.message || "Terjadi kesalahan.", false);
+      await typeAiBubble(loadingBubble, data.message || "Terjadi kesalahan.", false);
 
       return;
     }
@@ -948,7 +984,7 @@ window.testApi = async function () {
     // UPDATE CHAT
     // =========================
 
-    updateAiBubble(loadingBubble, data.content || "Tidak ada respon AI.");
+    await typeAiBubble(loadingBubble, data.content || "Tidak ada respon AI.");
 
     // =========================
     // UPDATE USAGE PANEL
@@ -963,7 +999,10 @@ window.testApi = async function () {
     currentUsageUsed = used;
     currentUsageLimit = limit;
   } catch (err) {
-    updateAiBubble(loadingBubble, err.message || "Server error.", false);
+    await typeAiBubble(loadingBubble, err.message || "Server error.", false);
+  } finally {
+    setChatSendingState(false);
+    promptInput.focus();
   }
 };
 

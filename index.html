@@ -179,8 +179,9 @@
 
     <div class="chat-composer">
       <textarea id="testPrompt" placeholder="Tulis pesan untuk AI..."></textarea>
-      <button onclick="testApi()" aria-label="Kirim pesan">
-        <img src="https://api.iconify.design/solar:plain-bold.svg?color=%23ffffff" alt="">
+      <button id="sendChatBtn" onclick="testApi()" aria-label="Kirim pesan">
+        <img class="send-icon" src="https://api.iconify.design/solar:plain-bold.svg?color=%23ffffff" alt="">
+        <span class="send-spinner" aria-hidden="true"></span>
       </button>
     </div>
     <div class="chat-hint">Tekan Enter untuk kirim, Shift + Enter untuk baris baru.</div>
