@@ -20,6 +20,7 @@ const firebaseConfig = {
 const CREATE_USER_API = "https://data-save-api-520643585460.us-central1.run.app";
 const CHAT_API = "https://api-mzmdqh3n6a-uc.a.run.app/chat";
 const REVIEW_API = "https://api-mzmdqh3n6a-uc.a.run.app/review";
+const BAN_CHECK_API = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/auth/check-ban";
 const QRIS_API = "https://qris.interactive.co.id/restapi/qris/show_qris.php";
 const QRIS_NMID = "ID1026514647324";
 const QRIS_API_KEY = "";
@@ -48,6 +49,7 @@ let currentUsageLimit = 100;
 let currentUsageUsed = 0;
 let reviewRating = 0;
 let reviewTimer = null;
+let isShowingBanModal = false;
 const REVIEW_DELAY = 60000;
 const REVIEW_RETRY_DELAY = 60000;
 
@@ -107,6 +109,20 @@ function clearAuthMessage() {
   messageBox.className = "auth-message hidden";
 }
 
+function showVerifyPanel() {
+  document.getElementById("verifyPanel").classList.remove("hidden");
+}
+
+function hideVerifyPanel() {
+  document.getElementById("verifyPanel").classList.add("hidden");
+}
+
+window.openVerificationHelp = function () {
+  openAuthModal("login");
+  showAuthMessage("Belum menerima email verifikasi? Cek Inbox, Spam, atau Promosi.", "success");
+  showVerifyPanel();
+};
+
 function setAuthLoading(isLoading) {
   const submitBtn = document.getElementById("authSubmitBtn");
   submitBtn.disabled = isLoading;
@@ -162,6 +178,7 @@ async function sendVerificationEmail(user) {
 window.setAuthMode = function (mode) {
   authMode = mode;
   clearAuthMessage();
+  hideVerifyPanel();
 
   document.getElementById("loginTab").classList.toggle("active", mode === "login");
   document.getElementById("registerTab").classList.toggle("active", mode === "register");
@@ -210,7 +227,7 @@ if (document.getElementById(firstPage)?.classList.contains("page")) {
 }
 
 async function createUserProfileInBackend(user) {
-  const token = await user.getIdToken(true);
+  const token = await user.getIdToken();
 
   const response = await fetch(CREATE_USER_API, {
     method: "POST",
@@ -245,7 +262,8 @@ window.registerUser = async function () {
     await signOut(auth);
 
     setAuthMode("login");
-    showAuthMessage("Link verifikasi sudah dikirim ke email kamu. Verifikasi dulu sebelum login.", "success");
+    showAuthMessage("Link verifikasi sudah dikirim ke email kamu.", "success");
+    showVerifyPanel();
   } catch (err) {
     showAuthMessage(getAuthErrorMessage(err));
   } finally {
@@ -268,6 +286,7 @@ window.loginUser = async function () {
       await sendVerificationEmail(user);
       await signOut(auth);
       showAuthMessage("Email belum diverifikasi. Link verifikasi baru sudah dikirim ke email kamu.");
+      showVerifyPanel();
       return;
     }
 
@@ -290,6 +309,59 @@ window.submitAuth = async function () {
 
 window.logoutUser = async function () {
   await signOut(auth);
+};
+
+async function checkUserBanStatus(user) {
+  const token = await user.getIdToken();
+  const response = await fetch(BAN_CHECK_API, {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + token,
+      "x-device-id": deviceId,
+    },
+  });
+
+  const contentType = response.headers.get("content-type") || "";
+  const rawBody = await response.text();
+
+  if (!contentType.includes("application/json")) {
+    throw new Error("Endpoint cek banned belum tersedia atau belum dideploy.");
+  }
+
+  let data;
+  try {
+    data = JSON.parse(rawBody);
+  } catch (err) {
+    throw new Error("Respons cek banned bukan JSON valid.");
+  }
+
+  if (response.status === 403 && data.banned) {
+    return {
+      banned: true,
+      message: data.error || "Akun ini dibanned.",
+    };
+  }
+
+  if (!response.ok || data.success === false) {
+    throw new Error(data.error || "Gagal mengecek status akun.");
+  }
+
+  return { banned: false };
+}
+
+async function handleBannedSession(message) {
+  isShowingBanModal = true;
+  await signOut(auth);
+  closeAuthModal();
+  document.getElementById("bannedMessage").innerText = message;
+  document.getElementById("bannedModal").classList.remove("hidden");
+}
+
+window.closeBannedModal = function () {
+  document.getElementById("bannedModal").classList.add("hidden");
+  isShowingBanModal = false;
+  openAuthModal("login");
+  showAuthMessage("Akun dibanned: " + document.getElementById("bannedMessage").innerText);
 };
 
 window.copyApiKey = async function () {
@@ -861,6 +933,12 @@ window.testApi = async function () {
     const data = await response.json();
 
     if (!response.ok || !data.success) {
+      if (data.banned) {
+        await handleBannedSession(data.message || data.error || "Akun ini dibanned.");
+        updateAiBubble(loadingBubble, data.message || data.error || "Akun ini dibanned.", false);
+        return;
+      }
+
       updateAiBubble(loadingBubble, data.message || "Terjadi kesalahan.", false);
 
       return;
@@ -904,6 +982,16 @@ onAuthStateChanged(auth, async (user) => {
       return;
     }
 
+    try {
+      const banStatus = await checkUserBanStatus(user);
+      if (banStatus.banned) {
+        await handleBannedSession(banStatus.message);
+        return;
+      }
+    } catch (err) {
+      console.warn("Gagal mengecek status banned:", err);
+    }
+
     resetChatHistory(true);
 
     document.getElementById("authBox").classList.add("hidden");
@@ -932,5 +1020,9 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById("navUser").classList.add("hidden");
     document.getElementById("mobileLogoutBtn").classList.add("hidden");
     document.getElementById("heroAuth").classList.remove("hidden");
+
+    if (isShowingBanModal) {
+      return;
+    }
   }
 });
