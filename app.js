@@ -19,6 +19,9 @@ const firebaseConfig = {
 
 const CREATE_USER_API = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/auth/create-profile";
 const CHAT_API = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/chat";
+const STUDENT_VERIFICATION_API = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/student-verifications";
+const STUDENT_VERIFICATION_SETTINGS_API = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/student-verifications/settings";
+const STUDENT_VERIFICATION_ME_API = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/student-verifications/me";
 const REVIEW_API = "https://api-mzmdqh3n6a-uc.a.run.app/review";
 const BAN_CHECK_API = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/auth/check-ban";
 const QRIS_API = "https://qris.interactive.co.id/restapi/qris/show_qris.php";
@@ -48,6 +51,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 let currentApiKey = "";
+let isApiKeyVisible = false;
 let authMode = "login";
 let chatHistory = [];
 let selectedPaymentPlan = "";
@@ -215,7 +219,11 @@ document.addEventListener("visibilitychange", () => {
 });
 
 window.toggleMenu = function () {
-  document.getElementById("menu").classList.toggle("active");
+  const menu = document.getElementById("menu");
+  const button = document.getElementById("mobileMenuBtn");
+  const isOpen = menu.classList.toggle("active");
+  button?.classList.toggle("active", isOpen);
+  button?.setAttribute("aria-expanded", String(isOpen));
 };
 
 window.showPage = function (pageId) {
@@ -226,6 +234,10 @@ window.showPage = function (pageId) {
   document.querySelectorAll(".menu a").forEach((link) => {
     link.classList.toggle("active", link.dataset.page === pageId);
   });
+
+  document.getElementById("menu")?.classList.remove("active");
+  document.getElementById("mobileMenuBtn")?.classList.remove("active");
+  document.getElementById("mobileMenuBtn")?.setAttribute("aria-expanded", "false");
 
   document.getElementById("menu").classList.remove("active");
 };
@@ -523,13 +535,27 @@ window.closeBannedModal = function () {
 
 window.copyApiKey = async function () {
   if (!currentApiKey) {
-    alert("API key belum tersedia.");
+    showToast("API key belum tersedia.");
     return;
   }
 
   await navigator.clipboard.writeText(currentApiKey);
-  alert("API key disalin.");
+  showToast("Copy API key berhasil");
 };
+
+let toastTimer;
+function showToast(message) {
+  const toast = document.getElementById("toastMessage");
+  if (!toast) return;
+  clearTimeout(toastTimer);
+  toast.textContent = message;
+  toast.classList.remove("hidden");
+  requestAnimationFrame(() => toast.classList.add("show"));
+  toastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.classList.add("hidden"), 220);
+  }, 1800);
+}
 
 window.selectPlan = function (planName) {
   if (!auth.currentUser) {
@@ -701,6 +727,58 @@ window.cancelReview = function () {
   if (!user || hasSentReview(user)) return;
 
   scheduleReviewPopup(user, REVIEW_RETRY_DELAY);
+};
+
+function maskEmail(email = "") {
+  const [name = "", domain = ""] = email.split("@");
+  if (!domain) return email;
+  const visibleStart = name.slice(0, Math.min(2, name.length));
+  const maskedName = visibleStart + "*".repeat(Math.max(name.length - visibleStart.length, 3));
+  return `${maskedName}@${domain}`;
+}
+
+function renderApiKey() {
+  const apiKeyBox = document.getElementById("apiKeyBox");
+  const icon = document.getElementById("apiKeyVisibilityIcon");
+  if (!apiKeyBox) return;
+
+  if (!currentApiKey) {
+    apiKeyBox.innerText = "API key kosong.";
+    apiKeyBox.classList.remove("masked");
+    return;
+  }
+
+  apiKeyBox.innerText = isApiKeyVisible ? currentApiKey : "•".repeat(Math.max(currentApiKey.length, 18));
+  apiKeyBox.classList.toggle("masked", !isApiKeyVisible);
+
+  if (icon) {
+    icon.src = isApiKeyVisible
+      ? "https://api.iconify.design/solar:eye-closed-bold.svg?color=%230a84ff"
+      : "https://api.iconify.design/solar:eye-bold.svg?color=%230a84ff";
+  }
+}
+
+function updateApiStatus(data = {}) {
+  const statusBox = document.getElementById("apiStatusBox");
+  const statusCard = statusBox?.closest(".metric");
+  if (!statusBox || !statusCard) return;
+
+  const rawStatus = String(data.status || "").toLowerCase();
+  const isInactive =
+    data.active === false ||
+    data.enabled === false ||
+    data.disabled === true ||
+    rawStatus === "inactive" ||
+    rawStatus === "nonaktif" ||
+    rawStatus === "disabled";
+
+  statusBox.innerText = isInactive ? "Nonaktif" : "Aktif";
+  statusCard.classList.toggle("inactive", isInactive);
+}
+
+window.toggleApiKeyVisibility = function () {
+  isApiKeyVisible = !isApiKeyVisible;
+  renderApiKey();
 };
 
 window.openMaintenanceGame = function () {
@@ -1321,9 +1399,10 @@ async function waitForUserProfile(user, maxTry = 10) {
 }
 
 async function loadUserData(user) {
-  document.getElementById("userEmail").innerText = user.email;
+  document.getElementById("userEmail").innerText = maskEmail(user.email);
   document.getElementById("apiKeyBox").innerText = "Memuat API key...";
   document.getElementById("limitBox").innerText = "50";
+  updateApiStatus();
   updateUsagePanel(0, 50);
   updateImageUsagePanel(0, 2, 0, 2);
 
@@ -1347,8 +1426,10 @@ async function loadUserData(user) {
   currentApiKey = data.apiKey || "";
   currentUsageLimit = Number(data.limit || 50);
 
-  document.getElementById("apiKeyBox").innerText = currentApiKey || "API key kosong.";
+  isApiKeyVisible = false;
+  renderApiKey();
   document.getElementById("limitBox").innerText = currentUsageLimit;
+  updateApiStatus(data);
 
   await loadUsageData(currentApiKey, currentUsageLimit);
 }
@@ -1648,6 +1729,7 @@ onAuthStateChanged(auth, async (user) => {
     await loadUserData(user);
     await syncReviewStatus(user);
     scheduleReviewPopup(user);
+    await loadMyStudentVerificationStatus();
   } else {
     currentApiKey = "";
     currentUsageUsed = 0;
@@ -1672,3 +1754,363 @@ onAuthStateChanged(auth, async (user) => {
     }
   }
 });
+
+const csAnswers = {
+  gratis: "Ya. PUTRA AI STUDIO menyediakan paket Basic gratis agar kamu bisa mencoba layanan AI terlebih dahulu.",
+  apikey: "Daftar akun, verifikasi email, lalu login. Setelah itu API key kamu akan muncul otomatis di dashboard.",
+  fitur: "Fitur utama saat ini: chat text, analisis gambar, edit gambar, generate gambar, API key otomatis, dan pemantauan kuota.",
+  limit: "Paket Basic memiliki 50 request per hari, 2 request kirim gambar per bulan, dan 2 request pembuatan gambar per bulan.",
+  gambar: "Bisa. Kamu dapat mengirim gambar untuk dianalisis, mengedit gambar, dan membuat gambar baru dari prompt teks.",
+  dokumentasi: "Buka menu Dokumentasi untuk melihat endpoint, header, body request, contoh kode, response, dan error umum.",
+  upgrade: "Jika butuh limit lebih besar, buka menu Upgrade untuk melihat paket Plus dan Premium.",
+};
+
+function appendCsMessage(text, type) {
+  const messages = document.getElementById("csMessages");
+  if (!messages) return;
+  const bubble = document.createElement("div");
+  bubble.className = `cs-message ${type}`;
+  bubble.textContent = text;
+  messages.appendChild(bubble);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function appendCsTypingMessage() {
+  const messages = document.getElementById("csMessages");
+  if (!messages) return null;
+  const bubble = document.createElement("div");
+  bubble.className = "cs-message bot typing";
+  bubble.innerHTML = `
+    <span class="cs-typing-dots" aria-hidden="true">
+      <i></i><i></i><i></i>
+    </span>
+  `;
+  messages.appendChild(bubble);
+  messages.scrollTop = messages.scrollHeight;
+  return bubble;
+}
+
+async function typeCsReply(text) {
+  const messages = document.getElementById("csMessages");
+  if (!messages) return;
+
+  const typingBubble = appendCsTypingMessage();
+  await new Promise((resolve) => setTimeout(resolve, 700));
+  typingBubble?.remove();
+
+  const bubble = document.createElement("div");
+  bubble.className = "cs-message bot";
+  messages.appendChild(bubble);
+
+  for (const char of text) {
+    bubble.textContent += char;
+    messages.scrollTop = messages.scrollHeight;
+    await new Promise((resolve) => setTimeout(resolve, 18));
+  }
+}
+
+function getCsAutoReply(text) {
+  const value = text.toLowerCase();
+  if (value.includes("gratis") || value.includes("free")) return csAnswers.gratis;
+  if (value.includes("api key") || value.includes("apikey") || value.includes("key")) return csAnswers.apikey;
+  if (value.includes("fitur")) return csAnswers.fitur;
+  if (value.includes("limit") || value.includes("kuota")) return csAnswers.limit;
+  if (value.includes("gambar") || value.includes("image")) return csAnswers.gambar;
+  if (value.includes("dokumen") || value.includes("docs")) return csAnswers.dokumentasi;
+  if (value.includes("upgrade") || value.includes("premium") || value.includes("plus")) return csAnswers.upgrade;
+  return "Terima kasih sudah menghubungi CS Putra AI. Untuk saat ini saya bisa bantu soal layanan gratis, API key, fitur, limit, gambar, dokumentasi, dan upgrade.";
+}
+
+window.toggleCsChat = function () {
+  document.getElementById("csChat")?.classList.toggle("hidden");
+};
+
+window.askCsQuestion = function (key) {
+  const questionMap = {
+    gratis: "Apakah layanan ini gratis?",
+    apikey: "Cara mendapatkan API key?",
+    fitur: "Fitur apa saja yang tersedia?",
+    limit: "Berapa limit paket Basic?",
+    gambar: "Bisa buat dan analisis gambar?",
+  };
+
+  appendCsMessage(questionMap[key] || "Saya ingin bertanya.", "user");
+  typeCsReply(csAnswers[key] || getCsAutoReply(questionMap[key] || ""));
+};
+
+window.sendCsMessage = function () {
+  const input = document.getElementById("csInput");
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+  appendCsMessage(text, "user");
+  typeCsReply(getCsAutoReply(text));
+  input.value = "";
+};
+
+window.handleCsKeydown = function (event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    sendCsMessage();
+  }
+};
+
+window.openStudentVerificationModal = function () {
+  if (document.getElementById("studentApplyBtn")?.disabled) return;
+  document.getElementById("studentVerificationModal").classList.remove("hidden");
+};
+
+window.closeStudentVerificationModal = function (event) {
+  if (event && event.target !== document.getElementById("studentVerificationModal")) return;
+  document.getElementById("studentVerificationModal").classList.add("hidden");
+};
+
+window.closeStudentResultModal = function (event) {
+  if (event && event.target !== document.getElementById("studentResultModal")) return;
+  document.getElementById("studentResultModal").classList.add("hidden");
+};
+
+window.closeProgramPopup = function (event) {
+  if (event && event.target !== document.getElementById("programPopup")) return;
+  document.getElementById("programPopup").classList.add("hidden");
+  document.body.classList.remove("modal-open");
+};
+
+window.openStudentProgramFromPromo = function () {
+  closeProgramPopup();
+  if (auth.currentUser) {
+    openStudentVerificationModal();
+  } else {
+    openAuthModal("login");
+  }
+};
+
+function showStudentResultModal({title, text, actionLabel = "Tutup", onAction = null}) {
+  document.getElementById("studentResultTitle").innerText = title;
+  document.getElementById("studentResultText").innerText = text;
+  const button = document.getElementById("studentResultPrimaryBtn");
+  button.innerText = actionLabel;
+  button.onclick = () => {
+    closeStudentResultModal();
+    onAction?.();
+  };
+  document.getElementById("studentResultModal").classList.remove("hidden");
+}
+
+function showStudentVerificationMessage(message, type = "success") {
+  const box = document.getElementById("studentVerificationMessage");
+  box.innerText = message;
+  box.className = `auth-message ${type}`;
+}
+
+async function fileToCompressedDataUrl(file) {
+  return await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const image = new Image();
+      image.onload = () => {
+        const maxWidth = 1200;
+        const scale = Math.min(1, maxWidth / image.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(image.width * scale);
+        canvas.height = Math.round(image.height * scale);
+        canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.78));
+      };
+      image.onerror = reject;
+      image.src = String(reader.result || "");
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+window.submitStudentVerification = async function () {
+  const user = auth.currentUser;
+  const fullName = document.getElementById("studentFullName").value.trim();
+  const nim = document.getElementById("studentNim").value.trim();
+  const university = document.getElementById("studentUniversity").value.trim();
+  const file = document.getElementById("studentEvidence").files?.[0];
+
+  if (!user) {
+    showStudentVerificationMessage("Masuk dulu sebelum mengajukan verifikasi.", "error");
+    return;
+  }
+  if (!fullName || !nim || !university || !file) {
+    showStudentVerificationMessage("Nama, NIM, kampus, dan bukti wajib diisi.", "error");
+    return;
+  }
+  if (!file.type.startsWith("image/")) {
+    showStudentVerificationMessage("Bukti wajib berupa gambar.", "error");
+    return;
+  }
+
+  try {
+    showStudentVerificationMessage("Mengirim pengajuan...", "success");
+    const evidenceDataUrl = await fileToCompressedDataUrl(file);
+    const token = await user.getIdToken();
+    const response = await fetch(STUDENT_VERIFICATION_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+      body: JSON.stringify({fullName, nim, university, evidenceDataUrl}),
+    });
+    const data = await response.json();
+    if (!response.ok || data.success === false) {
+      throw new Error(data.error || "Gagal mengirim pengajuan.");
+    }
+    showStudentVerificationMessage("Pengajuan berhasil dikirim. Tunggu persetujuan admin.", "success");
+    updateStudentProgramUi({status: "pending"});
+  } catch (err) {
+    showStudentVerificationMessage(err.message || "Gagal mengirim pengajuan.", "error");
+  }
+};
+
+async function loadStudentVerificationSettings() {
+  try {
+    const response = await fetch(STUDENT_VERIFICATION_SETTINGS_API);
+    const data = await response.json();
+    if (!response.ok || data.success === false) throw new Error();
+    const enabled = data.data?.enabled !== false;
+    const button = document.getElementById("studentApplyBtn");
+    const text = document.getElementById("studentProgramText");
+    if (button) {
+      button.disabled = !enabled;
+      button.innerText = enabled ? "Ajukan" : "Ditutup";
+    }
+    if (text) {
+      text.innerText = enabled
+        ? "Mahasiswa dari kampus mana pun dapat mengajukan peningkatan kuota terbatas."
+        : data.data?.message || "Pengajuan sedang ditutup sementara oleh admin.";
+    }
+  } catch {
+    // Biarkan default UI tetap aktif jika status tidak bisa dimuat.
+  }
+}
+
+async function loadMyStudentVerificationStatus() {
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    const token = await user.getIdToken();
+    const response = await fetch(STUDENT_VERIFICATION_ME_API, {
+      headers: {Authorization: "Bearer " + token},
+    });
+    const data = await response.json();
+    if (!response.ok || data.success === false || !data.data) return;
+
+    const status = data.data.status;
+    updateStudentProgramUi(data.data);
+    const noticeKey = `student_notice_${user.uid}_${status}_${data.data.updatedAt || ""}`;
+    if (sessionStorage.getItem(noticeKey)) return;
+    sessionStorage.setItem(noticeKey, "1");
+
+    if (status === "rejected") {
+      showStudentResultModal({
+        title: "Pengajuan Ditolak",
+        text:
+          (data.data.reason ? `${data.data.reason}. ` : "") +
+          "Kamu bisa mengirim pengajuan baru dengan bukti yang lebih jelas.",
+        actionLabel: "Ajukan Lagi",
+        onAction: () => openStudentVerificationModal(),
+      });
+    } else if (status === "approved") {
+      showStudentResultModal({
+        title: "Upgrade Berhasil",
+        text: "Verifikasi mahasiswa disetujui. Batas akun kamu telah ditingkatkan menjadi 250 request per hari selama 30 hari.",
+      });
+    }
+  } catch {
+    // Abaikan jika status belum bisa dimuat.
+  }
+}
+
+function updateStudentProgramUi(data = null) {
+  const button = document.getElementById("studentApplyBtn");
+  const text = document.getElementById("studentProgramText");
+  if (!button || !text || !data) return;
+
+  if (data.status === "pending") {
+    button.disabled = true;
+    button.innerText = "Menunggu";
+    text.innerText = "Pengajuan kamu sedang menunggu keputusan admin.";
+    return;
+  }
+
+  if (data.status === "approved" || data.studentVerified === true) {
+    button.disabled = true;
+    button.innerText = "Terverifikasi";
+    text.innerText = "Status kamu sudah menjadi mahasiswa terverifikasi. Pengajuan ulang tidak diperlukan.";
+    return;
+  }
+
+  if (data.status === "rejected") {
+    button.disabled = false;
+    button.innerText = "Ajukan Lagi";
+    text.innerText = "Pengajuan sebelumnya ditolak. Kamu dapat mengajukan ulang dengan bukti yang lebih jelas.";
+  }
+}
+
+let lastScrollY = window.scrollY || 0;
+
+function updateScrollEdges() {
+  const topEdge = document.getElementById("scrollEdgeTop");
+  const bottomEdge = document.getElementById("scrollEdgeBottom");
+  const scrollTop = window.scrollY || document.documentElement.scrollTop;
+  const maxScroll =
+    document.documentElement.scrollHeight - document.documentElement.clientHeight;
+
+  if (scrollTop <= 8) {
+    topEdge?.classList.remove("visible");
+    bottomEdge?.classList.toggle("visible", maxScroll > 8);
+  } else if (scrollTop >= maxScroll - 8) {
+    topEdge?.classList.add("visible");
+    bottomEdge?.classList.remove("visible");
+  } else if (scrollTop > lastScrollY) {
+    topEdge?.classList.add("visible");
+    bottomEdge?.classList.remove("visible");
+  } else if (scrollTop < lastScrollY) {
+    topEdge?.classList.remove("visible");
+    bottomEdge?.classList.add("visible");
+  }
+
+  lastScrollY = scrollTop;
+}
+
+function initScrollReveal() {
+  const revealTargets = document.querySelectorAll(
+    ".home-stat-card, .home-info-card, .process-card, .faq-card, .sponsor-strip, .home-cta-card, .journey-item, .achievement-card, .docs-intro-block, .docs-guide-card, .feature, .plan-card, .policy-block"
+  );
+
+  revealTargets.forEach((element) => element.classList.add("reveal-on-scroll"));
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    {
+      threshold: 0.12,
+      rootMargin: "0px 0px -24px 0px",
+    }
+  );
+
+  revealTargets.forEach((element) => observer.observe(element));
+}
+
+window.addEventListener("scroll", updateScrollEdges, { passive: true });
+window.addEventListener("resize", updateScrollEdges);
+updateScrollEdges();
+initScrollReveal();
+loadStudentVerificationSettings();
+
+setTimeout(() => {
+  document.getElementById("programPopup")?.classList.remove("hidden");
+  document.body.classList.add("modal-open");
+}, 600);
