@@ -1758,6 +1758,37 @@ body.night .verify-panel{
   box-shadow:0 14px 30px rgba(15,23,42,.08),var(--glass-inset);
 }
 
+.chat-model-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:18px 24px 0;
+}
+
+.chat-model-bar label{
+  color:var(--muted);
+  font-size:13px;
+  font-weight:700;
+}
+
+.chat-model-bar select{
+  min-width:170px;
+  border:1px solid rgba(15,23,42,.12);
+  border-radius:14px;
+  padding:11px 14px;
+  background:var(--soft-panel);
+  color:var(--ink);
+  font:inherit;
+  font-weight:700;
+  outline:none;
+}
+
+.chat-model-bar select:focus{
+  border-color:rgba(10,132,255,.45);
+  box-shadow:0 0 0 4px rgba(10,132,255,.12);
+}
+
 .masked-email-line{
   color:var(--muted-text);
 }

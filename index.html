@@ -476,6 +476,14 @@
     <h2 class="title">Test Api Key</h2>
 
     <div class="card chat-shell">
+      <div class="chat-model-bar">
+        <label for="chatModelSelect">Model AI</label>
+        <select id="chatModelSelect" aria-label="Pilih model AI">
+          <option value="PutraAi-V1">PutraAi-V1</option>
+          <option value="PutraAi-V2">PutraAi-V2</option>
+        </select>
+      </div>
+
       <div class="chat-top">
         <div class="chat-title">
           <div class="chat-icon">
@@ -564,7 +572,7 @@
             <h3>Mulai cepat memakai API</h3>
             <p>
               Semua request memakai HTTP POST dengan format JSON. Kamu hanya perlu endpoint,
-              header x-api-key, dan body sesuai fitur yang ingin dipakai.
+              header x-api-key, header model, dan body sesuai fitur yang ingin dipakai.
             </p>
           </div>
           <div class="docs-intro-block">
@@ -581,7 +589,7 @@
         <div class="docs-guide-grid">
           <div class="docs-guide-card">
             <h4>Autentikasi</h4>
-            <p>Semua endpoint membutuhkan header x-api-key. Jika key tidak dikirim, salah, atau nonaktif, request akan ditolak.</p>
+            <p>Semua endpoint membutuhkan header x-api-key. Gunakan juga header model untuk memilih PutraAi-V1 atau PutraAi-V2.</p>
           </div>
           <div class="docs-guide-card">
             <h4>Format Request</h4>
@@ -615,7 +623,8 @@
           <h4>Header</h4>
           <pre>{
   "Content-Type": "application/json",
-  "x-api-key": "API_KEY_KAMU"
+  "x-api-key": "API_KEY_KAMU",
+  "model": "PutraAi-V1"
 }</pre>
           <h4>Isi Permintaan</h4>
           <pre>{
@@ -638,12 +647,13 @@
           <pre class="lang-code active" data-feature="text" data-lang="curl">curl -X POST "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/chat" \
   -H "Content-Type: application/json" \
   -H "x-api-key: API_KEY_KAMU" \
+  -H "model: PutraAi-V1" \
   -d '{"prompt":"Halo PUTRA AI Studio"}'</pre>
           <pre class="lang-code" data-feature="text" data-lang="js">const API_URL = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/chat";
 
 const response = await fetch(API_URL, {
   method: "POST",
-  headers: {"Content-Type":"application/json","x-api-key":"API_KEY_KAMU"},
+  headers: {"Content-Type":"application/json","x-api-key":"API_KEY_KAMU","model":"PutraAi-V1"},
   body: JSON.stringify({prompt:"Halo PUTRA AI Studio"})
 });
 const data = await response.json();
@@ -653,21 +663,21 @@ console.log(data);</pre>
 const API_URL = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/chat";
 const { data } = await axios.post(API_URL,
   { prompt: "Halo PUTRA AI Studio" },
-  { headers: { "x-api-key": "API_KEY_KAMU" } }
+  { headers: { "x-api-key": "API_KEY_KAMU", "model": "PutraAi-V1" } }
 );
 console.log(data);</pre>
           <pre class="lang-code" data-feature="text" data-lang="python">import requests
 
 API_URL = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/chat"
 data = requests.post(API_URL,
-  headers={"x-api-key":"API_KEY_KAMU"},
+  headers={"x-api-key":"API_KEY_KAMU","model":"PutraAi-V1"},
   json={"prompt":"Halo PUTRA AI Studio"}
 ).json()
 print(data)</pre>
           <pre class="lang-code" data-feature="text" data-lang="php">&lt;?php
 $apiUrl = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/chat";
 $data = json_decode(file_get_contents($apiUrl, false, stream_context_create([
-  "http" => ["method"=>"POST","header"=>"Content-Type: application/json\r\nx-api-key: API_KEY_KAMU",
+  "http" => ["method"=>"POST","header"=>"Content-Type: application/json\r\nx-api-key: API_KEY_KAMU\r\nmodel: PutraAi-V1",
   "content"=>json_encode(["prompt"=>"Halo PUTRA AI Studio"])]
 ])), true);
 print_r($data);</pre>
@@ -685,6 +695,7 @@ body := strings.NewReader(`{"prompt":"Halo PUTRA AI Studio"}`)
 req, _ := http.NewRequest("POST", "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/chat", body)
 req.Header.Set("Content-Type", "application/json")
 req.Header.Set("x-api-key", "API_KEY_KAMU")
+req.Header.Set("model", "PutraAi-V1")
 res, _ := http.DefaultClient.Do(req)
 defer res.Body.Close()
 out, _ := io.ReadAll(res.Body)
@@ -699,6 +710,7 @@ public class Main {
       .uri(URI.create("https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/chat"))
       .header("Content-Type", "application/json")
       .header("x-api-key", "API_KEY_KAMU")
+      .header("model", "PutraAi-V1")
       .POST(HttpRequest.BodyPublishers.ofString("{\"prompt\":\"Halo PUTRA AI Studio\"}"))
       .build();
     System.out.println(HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString()).body());
@@ -709,6 +721,7 @@ using System.Text;
 
 var client = new HttpClient();
 client.DefaultRequestHeaders.Add("x-api-key", "API_KEY_KAMU");
+client.DefaultRequestHeaders.Add("model", "PutraAi-V1");
 var body = new StringContent("{\"prompt\":\"Halo PUTRA AI Studio\"}", Encoding.UTF8, "application/json");
 var response = await client.PostAsync("https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/chat", body);
 Console.WriteLine(await response.Content.ReadAsStringAsync());</pre>
@@ -719,6 +732,7 @@ val conn = URL("https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunction
 conn.requestMethod = "POST"
 conn.setRequestProperty("Content-Type", "application/json")
 conn.setRequestProperty("x-api-key", "API_KEY_KAMU")
+conn.setRequestProperty("model", "PutraAi-V1")
 conn.doOutput = true
 conn.outputStream.write("""{"prompt":"Halo PUTRA AI Studio"}""".toByteArray())
 println(conn.inputStream.bufferedReader().readText())</pre>
@@ -729,6 +743,7 @@ var request = URLRequest(url: url)
 request.httpMethod = "POST"
 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 request.setValue("API_KEY_KAMU", forHTTPHeaderField: "x-api-key")
+request.setValue("PutraAi-V1", forHTTPHeaderField: "model")
 request.httpBody = try JSONSerialization.data(withJSONObject: ["prompt":"Halo PUTRA AI Studio"])
 URLSession.shared.dataTask(with: request) { data, _, _ in
   print(String(data: data!, encoding: .utf8)!)
@@ -737,7 +752,7 @@ URLSession.shared.dataTask(with: request) { data, _, _ in
 require "json"
 
 uri = URI("https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/chat")
-req = Net::HTTP::Post.new(uri, {"Content-Type"=>"application/json","x-api-key"=>"API_KEY_KAMU"})
+req = Net::HTTP::Post.new(uri, {"Content-Type"=>"application/json","x-api-key"=>"API_KEY_KAMU","model"=>"PutraAi-V1"})
 req.body = {prompt:"Halo PUTRA AI Studio"}.to_json
 puts Net::HTTP.start(uri.hostname, uri.port, use_ssl:true) { |http| http.request(req) }.body</pre>
           <pre class="lang-code" data-feature="text" data-lang="dart">import 'dart:convert';
@@ -746,7 +761,7 @@ import 'package:http/http.dart' as http;
 void main() async {
   final res = await http.post(
     Uri.parse('https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/chat'),
-    headers: {'Content-Type':'application/json','x-api-key':'API_KEY_KAMU'},
+    headers: {'Content-Type':'application/json','x-api-key':'API_KEY_KAMU','model':'PutraAi-V1'},
     body: jsonEncode({'prompt':'Halo PUTRA AI Studio'}),
   );
   print(res.body);
@@ -788,6 +803,12 @@ void main() async {
   "prompt": "Ini gambar apa?",
   "imageBase64": "data:image/png;base64,iVBORw0KGgoAAA..."
 }</pre>
+          <h4>Header</h4>
+          <pre>{
+  "Content-Type": "application/json",
+  "x-api-key": "API_KEY_KAMU",
+  "model": "PutraAi-V1"
+}</pre>
           <h4>JavaScript</h4>
           <pre>const file = document.querySelector("input[type=file]").files[0];
 const reader = new FileReader();
@@ -799,7 +820,8 @@ reader.onload = async () =&gt; {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": "API_KEY_KAMU"
+        "x-api-key": "API_KEY_KAMU",
+        "model": "PutraAi-V1"
       },
       body: JSON.stringify({
         prompt: "Ini gambar apa?",
@@ -822,14 +844,14 @@ reader.readAsDataURL(file);</pre>
           <pre class="lang-code active" data-feature="vision" data-lang="js">const reader = new FileReader();
 reader.onload = async () => fetch(API_URL, {
   method:"POST",
-  headers:{"Content-Type":"application/json","x-api-key":"API_KEY_KAMU"},
+  headers:{"Content-Type":"application/json","x-api-key":"API_KEY_KAMU","model":"PutraAi-V1"},
   body:JSON.stringify({prompt:"Ini gambar apa?", imageBase64:reader.result})
 });
 reader.readAsDataURL(file);</pre>
           <pre class="lang-code" data-feature="vision" data-lang="python">import base64, requests
 encoded = base64.b64encode(open("gambar.png","rb").read()).decode()
 data = requests.post(API_URL,
-  headers={"x-api-key":"API_KEY_KAMU"},
+  headers={"x-api-key":"API_KEY_KAMU","model":"PutraAi-V1"},
   json={"prompt":"Ini gambar apa?","imageBase64":"data:image/png;base64,"+encoded}
 ).json()</pre>
           <pre class="lang-code" data-feature="vision" data-lang="php">$img = "data:image/png;base64," . base64_encode(file_get_contents("gambar.png"));
@@ -837,6 +859,7 @@ $payload = json_encode(["prompt"=>"Ini gambar apa?","imageBase64"=>$img]);</pre>
           <pre class="lang-code" data-feature="vision" data-lang="curl">curl -X POST "$API_URL" \
   -H "Content-Type: application/json" \
   -H "x-api-key: API_KEY_KAMU" \
+  -H "model: PutraAi-V1" \
   -d '{"prompt":"Ini gambar apa?","imageBase64":"data:image/png;base64,..."}'</pre>
         </article>
 
@@ -853,6 +876,12 @@ $payload = json_encode(["prompt"=>"Ini gambar apa?","imageBase64"=>$img]);</pre>
           <pre>{
   "prompt": "Ubah jadi gaya anime dan tambahkan langit senja",
   "imageBase64": "data:image/png;base64,iVBORw0KGgoAAA..."
+}</pre>
+          <h4>Header</h4>
+          <pre>{
+  "Content-Type": "application/json",
+  "x-api-key": "API_KEY_KAMU",
+  "model": "PutraAi-V1"
 }</pre>
           <h4>Contoh prompt</h4>
           <pre>- ubah jadi anime
@@ -880,6 +909,12 @@ $payload = json_encode(["prompt"=>"Ini gambar apa?","imageBase64"=>$img]);</pre>
           <pre>{
   "prompt": "Buatkan gambar kucing lucu di taman"
 }</pre>
+          <h4>Header</h4>
+          <pre>{
+  "Content-Type": "application/json",
+  "x-api-key": "API_KEY_KAMU",
+  "model": "PutraAi-V1"
+}</pre>
           <h4>Contoh prompt yang memicu generate</h4>
           <pre>- buat gambar kucing
 - bikin gambar pemandangan malam
@@ -891,7 +926,8 @@ $payload = json_encode(["prompt"=>"Ini gambar apa?","imageBase64"=>$img]);</pre>
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": "API_KEY_KAMU"
+      "x-api-key": "API_KEY_KAMU",
+      "model": "PutraAi-V1"
     },
     body: JSON.stringify({
       prompt: "Buat gambar kucing cyberpunk"
@@ -909,13 +945,13 @@ document.querySelector("img").src = data.imageBase64;</pre>
           </div>
           <pre class="lang-code active" data-feature="generate" data-lang="js">const data = await (await fetch(API_URL, {
   method:"POST",
-  headers:{"Content-Type":"application/json","x-api-key":"API_KEY_KAMU"},
+  headers:{"Content-Type":"application/json","x-api-key":"API_KEY_KAMU","model":"PutraAi-V1"},
   body:JSON.stringify({prompt:"Buat gambar kucing cyberpunk"})
 })).json();
 image.src = data.imageBase64;</pre>
           <pre class="lang-code" data-feature="generate" data-lang="python">import requests
 data = requests.post(API_URL,
-  headers={"x-api-key":"API_KEY_KAMU"},
+  headers={"x-api-key":"API_KEY_KAMU","model":"PutraAi-V1"},
   json={"prompt":"Buat gambar kucing cyberpunk"}
 ).json()</pre>
           <pre class="lang-code" data-feature="generate"
@@ -923,6 +959,7 @@ data = requests.post(API_URL,
           <pre class="lang-code" data-feature="generate" data-lang="curl">curl -X POST "$API_URL" \
   -H "Content-Type: application/json" \
   -H "x-api-key: API_KEY_KAMU" \
+  -H "model: PutraAi-V1" \
   -d '{"prompt":"Buat gambar kucing cyberpunk"}'</pre>
           <h4>Response</h4>
           <pre>{

@@ -51,6 +51,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 let currentApiKey = "";
+let selectedChatModel = localStorage.getItem("selected_chat_model") || "PutraAi-V1";
 let isApiKeyVisible = false;
 let authMode = "login";
 let chatHistory = [];
@@ -1590,6 +1591,7 @@ window.testApi = async function () {
         "Content-Type": "application/json",
         "x-api-key": currentApiKey,
         "x-device-id": deviceId,
+        model: selectedChatModel,
       },
       body: JSON.stringify({
         prompt: userMessage,
@@ -1659,6 +1661,15 @@ window.testApi = async function () {
     promptInput.focus();
   }
 };
+
+const chatModelSelect = document.getElementById("chatModelSelect");
+if (chatModelSelect) {
+  chatModelSelect.value = selectedChatModel;
+  chatModelSelect.addEventListener("change", (event) => {
+    selectedChatModel = event.target.value || "PutraAi-V1";
+    localStorage.setItem("selected_chat_model", selectedChatModel);
+  });
+}
 
 document.getElementById("chatImageInput").addEventListener("change", (event) => {
   const file = event.target.files?.[0];
