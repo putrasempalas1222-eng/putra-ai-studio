@@ -18,29 +18,17 @@ const firebaseConfig = {
 };
 
 const BASE_API = "https://api-key-520643585460.us-central1.run.app";
+const FUNCTIONS_API_BASE = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api";
+const REVIEW_API_BASE = "https://api-key-mzmdqh3n6a-uc.a.run.app";
 
 const CREATE_USER_API = `${BASE_API}/auth/create-profile`;
-
 const CHAT_API = `${BASE_API}/chat`;
-
-const STUDENT_VERIFICATION_API =
-  `${BASE_API}/student-verifications`;
-
-const STUDENT_VERIFICATION_SETTINGS_API =
-  `${BASE_API}/student-verifications/settings`;
-
-const STUDENT_VERIFICATION_ME_API =
-  `${BASE_API}/student-verifications/me`;
-
-const BAN_CHECK_API =
-  `${BASE_API}/auth/check-ban`;
-
-const MAINTENANCE_API =
-  `${BASE_API}/maintenance`;
-
-const REVIEW_API =
-  "https://api-key-mzmdqh3n6a-uc.a.run.app/review";
-  
+const STUDENT_VERIFICATION_API = `${BASE_API}/student-verifications`;
+const STUDENT_VERIFICATION_SETTINGS_API = `${BASE_API}/student-verifications/settings`;
+const STUDENT_VERIFICATION_ME_API = `${BASE_API}/student-verifications/me`;
+const REVIEW_API = `${REVIEW_API_BASE}/review`;
+const BAN_CHECK_API = `${BASE_API}/auth/check-ban`;
+const MAINTENANCE_API = `${FUNCTIONS_API_BASE}/maintenance`;
 const QRIS_API = "https://qris.interactive.co.id/restapi/qris/show_qris.php";
 const QRIS_NMID = "ID1026514647324";
 const QRIS_API_KEY = "";
@@ -99,8 +87,6 @@ let currentEnvironmentIndex = 0;
 const runnerEnvironments = ["day", "foggy", "sandstorm", "night"];
 const REVIEW_DELAY = 60000;
 const REVIEW_RETRY_DELAY = 60000;
-const MAINTENANCE_API =
-  "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/maintenance";
 
 let deviceId = localStorage.getItem("device_id");
 
@@ -186,6 +172,7 @@ function updateMaintenanceCountdown(endsAt, isEnabled) {
 
     if (remaining <= 0) {
       countdownText.innerText = "Maintenance selesai";
+      const adminMessageText = document.getElementById("maintenanceAdminMessageText");
       applyMaintenanceState({
         enabled: false,
         message: adminMessageText?.innerText || "",
@@ -218,7 +205,19 @@ function updateMaintenanceCountdown(endsAt, isEnabled) {
 async function loadMaintenanceState() {
   try {
     const response = await fetch(MAINTENANCE_API, { cache: "no-store" });
-    const data = await response.json();
+    const contentType = response.headers.get("content-type") || "";
+    const rawBody = await response.text();
+
+    if (!contentType.includes("application/json")) {
+      throw new Error(`Endpoint maintenance tidak mengembalikan JSON (${response.status}).`);
+    }
+
+    let data;
+    try {
+      data = JSON.parse(rawBody);
+    } catch {
+      throw new Error("Respons maintenance bukan JSON valid.");
+    }
 
     if (!response.ok || data.success === false) {
       throw new Error(data.error || "Gagal memuat status maintenance.");
