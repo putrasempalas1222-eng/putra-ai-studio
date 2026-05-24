@@ -17,13 +17,30 @@ const firebaseConfig = {
   measurementId: "G-6GX7G5JDN2",
 };
 
-const CREATE_USER_API = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/auth/create-profile";
-const CHAT_API = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/chat";
-const STUDENT_VERIFICATION_API = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/student-verifications";
-const STUDENT_VERIFICATION_SETTINGS_API = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/student-verifications/settings";
-const STUDENT_VERIFICATION_ME_API = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/student-verifications/me";
-const REVIEW_API = "https://api-mzmdqh3n6a-uc.a.run.app/review";
-const BAN_CHECK_API = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api/auth/check-ban";
+const BASE_API = "https://api-key-520643585460.us-central1.run.app";
+
+const CREATE_USER_API = `${BASE_API}/auth/create-profile`;
+
+const CHAT_API = `${BASE_API}/chat`;
+
+const STUDENT_VERIFICATION_API =
+  `${BASE_API}/student-verifications`;
+
+const STUDENT_VERIFICATION_SETTINGS_API =
+  `${BASE_API}/student-verifications/settings`;
+
+const STUDENT_VERIFICATION_ME_API =
+  `${BASE_API}/student-verifications/me`;
+
+const BAN_CHECK_API =
+  `${BASE_API}/auth/check-ban`;
+
+const MAINTENANCE_API =
+  `${BASE_API}/maintenance`;
+
+const REVIEW_API =
+  "https://api-key-mzmdqh3n6a-uc.a.run.app/review";
+  
 const QRIS_API = "https://qris.interactive.co.id/restapi/qris/show_qris.php";
 const QRIS_NMID = "ID1026514647324";
 const QRIS_API_KEY = "";
