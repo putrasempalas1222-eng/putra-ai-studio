@@ -18,7 +18,7 @@ const firebaseConfig = {
 };
 
 const BASE_API = "https://api-key-520643585460.us-central1.run.app";
-const FUNCTIONS_API_BASE = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api";
+const FUNCTIONS_API_BASE = "https://us-central1-play-integrity-2adpr7x4a8xhyex.cloudfunctions.net/api-key";
 const REVIEW_API_BASE = "https://api-key-mzmdqh3n6a-uc.a.run.app";
 
 const CREATE_USER_API = `${BASE_API}/auth/create-profile`;
